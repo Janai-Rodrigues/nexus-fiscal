@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Fiscal | Cloud</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            /* Palette - Light */
+            --primary: #4f46e5;
+            --primary-glow: rgba(79, 70, 229, 0.25);
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --icon-color: #475569;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+
+            /* Status Colors */
+            --st-pending-bg: #fef2f2;
+            --st-pending-txt: #ef4444;
+            --st-active-bg: #fffbeb;
+            --st-active-txt: #f59e0b;
+            --st-done-bg: #f0fdf4;
+            --st-done-txt: #22c55e;
+            --st-total-bg: #eff6ff;
+            --st-total-txt: #3b82f6;
+
+            /* Transitions */
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.25);
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-subtle: #334155;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --icon-color: #cbd5e1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+            --st-pending-bg: rgba(239, 68, 68, 0.15);
+            --st-pending-txt: #fca5a5;
+            --st-active-bg: rgba(245, 158, 11, 0.15);
+            --st-active-txt: #fcd34d;
+            --st-done-bg: rgba(34, 197, 94, 0.15);
+            --st-done-txt: #86efac;
+            --st-total-bg: rgba(59, 130, 246, 0.15);
+            --st-total-txt: #93c5fd;
+        }
+
+        /* --- 2. Scrollbars Estilizadas --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+            border: 2px solid var(--bg-body);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Scrollbar interna de containers surface */
+        .table-scroll::-webkit-scrollbar-track,
+        .popover-content::-webkit-scrollbar-track,
+        .drawer-body::-webkit-scrollbar-track {
+            background: var(--bg-surface);
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb,
+        .popover-content::-webkit-scrollbar-thumb,
+        .drawer-body::-webkit-scrollbar-thumb {
+            border-color: var(--bg-surface);
+        }
+
+        /* --- Global Reset & Base --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+            fill: none;
+            stroke: currentColor;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: all 0.2s var(--ease);
+        }
+
+        /* Dark Mode Input Fix */
+        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* Glass Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        [data-theme="dark"] .glass {
+            background: rgba(30, 41, 59, 0.85);
+        }
+
+        /* --- Skeleton Loader --- */
+        #skeleton-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 32px;
+            gap: 24px;
+        }
+
+        .sk-header {
+            height: 60px;
+            width: 100%;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0 32px;
+            box-sizing: border-box;
+            background: var(--bg-surface);
+        }
+
+        .sk-content {
+            margin-top: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 100%;
+        }
+
+        .sk-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .sk-box {
+            background: var(--bg-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sk-card {
+            height: 80px;
+        }
+
+        .sk-table {
+            flex: 1;
+            border-radius: 16px;
+        }
+
+        /* Animation shimmer */
+        .sk-anim::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.05) 20%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0));
+            animation: shimmer 2s infinite;
+        }
+
+        [data-theme="light"] .sk-anim::after {
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* --- Login Screen --- */
+        /* 6. Escondido por padrão para evitar blink, JS ativa se necessário */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: var(--bg-body);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow-float);
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .login-form .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .login-form label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .icon.left-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            width: 18px;
+            height: 18px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .input-wrapper .inp-login {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-subtle);
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .input-wrapper .inp-login:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            outline: none;
+            background: var(--bg-surface);
+        }
+
+        .toggle-pass {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 10;
+            padding: 4px;
+            width: 28px;
+            height: 28px;
+        }
+
+        .toggle-pass:hover {
+            color: var(--primary);
+        }
+
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .checkbox-wrapper input {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: filter 0.2s;
+        }
+
+        .btn-login:hover {
+            filter: brightness(110%);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .login-error {
+            margin-top: 16px;
+            padding: 10px;
+            background: var(--st-pending-bg);
+            color: var(--st-pending-txt);
+            font-size: 0.85rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        /* --- Header --- */
+        header {
+            height: 60px;
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 50;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-box {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
+        .logo-box .icon {
+            width: 16px;
+            height: 16px;
+            stroke: white;
+        }
+
+        .header-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Theme Btn */
+        .theme-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--icon-color);
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-btn:hover {
+            background: var(--bg-subtle);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .t-icon {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .icon-sun {
+            opacity: 0;
+            transform: scale(0.5) rotate(-90deg);
+        }
+
+        .icon-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
+        }
+
+        [data-theme="light"] .icon-sun {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        [data-theme="light"] .icon-moon {
+            opacity: 0;
+            transform: scale(0.5) rotate(90deg);
+        }
+
+        [data-theme="dark"] .icon-sun {
+            opacity: 0;
+            transform: scale(0.5) rotate(-90deg);
+        }
+
+        [data-theme="dark"] .icon-moon {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            flex: 1;
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: hidden;
+            max-width: 1800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .stat-icon-decoration {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.15;
+        }
+
+        .sc-pendente .stat-value {
+            color: var(--st-pending-txt);
+        }
+
+        .sc-pendente .stat-icon-decoration {
+            background: var(--st-pending-txt);
+            color: var(--st-pending-txt);
+        }
+
+        .sc-pendente.active {
+            border-color: var(--st-pending-txt);
+            border-bottom-width: 4px;
+            background: var(--st-pending-bg);
+        }
+
+        .sc-andamento .stat-value {
+            color: var(--st-active-txt);
+        }
+
+        .sc-andamento .stat-icon-decoration {
+            background: var(--st-active-txt);
+            color: var(--st-active-txt);
+        }
+
+        .sc-andamento.active {
+            border-color: var(--st-active-txt);
+            border-bottom-width: 4px;
+            background: var(--st-active-bg);
+        }
+
+        .sc-finalizado .stat-value {
+            color: var(--st-done-txt);
+        }
+
+        .sc-finalizado .stat-icon-decoration {
+            background: var(--st-done-txt);
+            color: var(--st-done-txt);
+        }
+
+        .sc-finalizado.active {
+            border-color: var(--st-done-txt);
+            border-bottom-width: 4px;
+            background: var(--st-done-bg);
+        }
+
+        .sc-todos .stat-value {
+            color: var(--st-total-txt);
+        }
+
+        .sc-todos .stat-icon-decoration {
+            background: var(--st-total-txt);
+            color: var(--st-total-txt);
+        }
+
+        .sc-todos.active {
+            border-color: var(--st-total-txt);
+            border-bottom-width: 4px;
+            background: var(--st-total-bg);
+        }
+
+        /* Toolbar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 5. Aumente o campo de filtro */
+        .search-group {
+            position: relative;
+            width: 860px;
+        }
+
+        .search-group input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            transition: 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .search-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .clear-icon {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: none;
+        }
+
+        .btn-new {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transition: filter 0.2s;
+        }
+
+        .btn-new:hover {
+            filter: brightness(110%);
+        }
+
+        /* Table */
+        .table-wrapper {
+            background: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .table-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+            table-layout: fixed;
+        }
+
+        thead {
+            background: var(--bg-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-main);
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        tr:hover td {
+            background: var(--bg-body);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status & Badges */
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: filter 0.2s;
+            user-select: none;
+        }
+
+        .status-dot:hover {
+            filter: brightness(90%);
+        }
+
+        [data-theme="dark"] .status-dot:hover {
+            filter: brightness(120%);
+        }
+
+        .st-pendente {
+            background: var(--st-pending-bg);
+            color: var(--st-pending-txt);
+        }
+
+        .st-andamento {
+            background: var(--st-active-bg);
+            color: var(--st-active-txt);
+        }
+
+        .st-finalizado {
+            background: var(--st-done-bg);
+            color: var(--st-done-txt);
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .delay-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .delay-tag.late {
+            color: var(--st-pending-txt);
+        }
+
+        .action-cell {
+            display: flex;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--icon-color);
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-subtle);
+            color: var(--primary);
+        }
+
+        .btn-icon.del:hover {
+            background: var(--st-pending-bg);
+            color: var(--st-pending-txt);
+        }
+
+        /* 4. Classe para texto vermelho se duplicado */
+        .text-red {
+            color: var(--st-pending-txt);
+            font-weight: 700;
+        }
+
+        .empty-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            color: var(--border);
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        /* Drawers */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(3px);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 450px;
+            background: var(--bg-surface);
+            box-shadow: -10px 0 25px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+
+        .drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .drawer-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-subtle);
+        }
+
+        .drawer-header button,
+        .popover-close {
+            color: var(--text-main) !important;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .inp {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .inp:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            outline: none;
+        }
+
+        textarea.inp {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-sec {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .btn-sec:hover {
+            background: var(--bg-subtle);
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, var(--bg-subtle), var(--bg-surface));
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .p-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
+        .p-info {
+            overflow: hidden;
+        }
+
+        .p-name {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .p-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--st-pending-txt);
+            color: var(--st-pending-txt);
+            border-radius: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: var(--st-pending-bg);
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            padding: 16px 20px;
+            border-radius: 8px 8px 8px 8px;
+            box-shadow: var(--shadow-float);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            min-width: 320px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left-color: var(--st-done-txt);
+        }
+
+        .toast.success .t-icon-box {
+            color: var(--st-done-txt);
+            background: var(--st-done-bg);
+        }
+
+        .toast.error {
+            border-left-color: var(--st-pending-txt);
+        }
+
+        .toast.error .t-icon-box {
+            color: var(--st-pending-txt);
+            background: var(--st-pending-bg);
+        }
+
+        .t-icon-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Popover & Modal */
+        /* 3. Popover stylings update */
+        .popover {
+            position: absolute;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 300px;
+            box-shadow: var(--shadow-float);
+            z-index: 150;
+            display: none;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            overflow: hidden;
+            animation: popIn 0.2s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .popover-header {
+            background: var(--bg-subtle);
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .popover-title {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .popover-close {
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .popover-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-main);
+        }
+
+        .popover-content {
+            padding: 12px;
+            white-space: normal;
+            word-wrap: break-word;
+            max-height: 250px;
+            overflow-y: auto;
+            /* Scrollbar interna para Obs grande */
+        }
+
+        .custom-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+
+        .custom-modal {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-float);
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .custom-modal-backdrop.active .custom-modal {
+            transform: scale(1);
+        }
+
+        .cm-body {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .cm-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+            color: var(--primary);
+        }
+
+        .cm-icon.danger {
+            background: var(--st-pending-bg);
+            color: var(--st-pending-txt);
+        }
+
+        .cm-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .cm-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .cm-footer {
+            padding: 16px;
+            background: var(--bg-subtle);
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .btn-cancel {
+            background: var(--bg-surface);
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-subtle);
+        }
+
+        .btn-confirm {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            filter: brightness(110%);
+        }
+
+        .btn-confirm.danger {
+            background: var(--st-pending-txt);
+        }
+
+        .table-footer {
+            padding: 12px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-subtle);
+        }
+
+        .pagination-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn:not(:disabled):hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="skeleton-loader">
+        <div class="sk-header sk-anim sk-box"></div>
+        <div class="sk-content">
+            <div class="sk-cards">
+                <div class="sk-box sk-card sk-anim"></div>
+                <div class="sk-box sk-card sk-anim"></div>
+                <div class="sk-box sk-card sk-anim"></div>
+                <div class="sk-box sk-card sk-anim"></div>
+            </div>
+            <div class="sk-box sk-table sk-anim"></div>
+        </div>
+    </div>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg class="icon" style="width:24px; height:24px;" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                </svg>
+            </div>
+            <h1 class="login-title">Bem-vindo(a)</h1>
+            <p class="login-subtitle">Acesse o sistema Nexus Fiscal</p>
+
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <div class="input-wrapper">
+                        <svg class="icon left-icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                        <input type="email" id="loginEmail" class="inp-login" placeholder="seu@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Senha</label>
+                    <div class="input-wrapper">
+                        <svg class="icon left-icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                        <input type="password" id="loginPass" class="inp-login" placeholder="********" required>
+                        <div class="toggle-pass" onclick="togglePasswordVisibility()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="rememberMe"> Lembrar de mim
+                    </label>
+                    <a href="#" style="color: var(--primary); text-decoration: none; font-weight: 500;">Esqueceu?</a>
+                </div>
+
+                <div id="loginError" class="login-error"></div>
+
+                <button type="submit" class="btn-login" id="btnLogin">
+                    <span>Entrar no Sistema</span>
+                    <svg class="icon" style="width:18px;height:18px;" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-content" class="hidden" style="display: flex; flex-direction: column; height: 100vh;">
+        <header class="glass">
+            <div class="logo">
+                <div class="logo-box">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                </div>
+                Nexus Fiscal
+            </div>
+            <div class="header-tools">
+                <button class="theme-btn" onclick="toggleTheme()" title="Alterar Tema">
+                    <svg class="t-icon icon-sun" viewBox="0 0 24 24">
+                        <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                    <svg class="t-icon icon-moon" viewBox="0 0 24 24">
+                        <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                    </svg>
+                </button>
+                <button class="theme-btn" onclick="openConfig()" title="Preferências & Perfil">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <div class="stats-row">
+                <div class="stat-card sc-pendente" onclick="filterData('Pendente')">
+                    <div class="stat-info">
+                        <div class="stat-label">Pendentes</div>
+                        <div class="stat-value" id="kpi-pendente">0</div>
+                    </div>
+                    <div class="stat-icon-decoration"><svg class="icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg></div>
+                </div>
+                <div class="stat-card sc-andamento" onclick="filterData('Em andamento')">
+                    <div class="stat-info">
+                        <div class="stat-label">Em Andamento</div>
+                        <div class="stat-value" id="kpi-andamento">0</div>
+                    </div>
+                    <div class="stat-icon-decoration"><svg class="icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg></div>
+                </div>
+                <div class="stat-card sc-finalizado" onclick="filterData('Finalizado')">
+                    <div class="stat-info">
+                        <div class="stat-label">Finalizados</div>
+                        <div class="stat-value" id="kpi-finalizado">0</div>
+                    </div>
+                    <div class="stat-icon-decoration"><svg class="icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg></div>
+                </div>
+                <div class="stat-card sc-todos active" onclick="filterData('Todos')">
+                    <div class="stat-info">
+                        <div class="stat-label">Total</div>
+                        <div class="stat-value" id="kpi-todos">0</div>
+                    </div>
+                    <div class="stat-icon-decoration"><svg class="icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg></div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <div class="search-group">
+                    <svg class="search-icon icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Buscar nota, endereço ou série..."
+                        onkeyup="handleSearch()">
+                    <svg class="clear-icon icon" id="clearSearchBtn" onclick="clearSearch()" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <button class="btn-new" onclick="openDrawer()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Nova Nota
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 20%">Título / Identificação</th>
+                                <th style="width: 100px">Data</th>
+                                <th style="width: 100px">Tipo</th>
+                                <th style="width: 100px">Ação Doc</th>
+                                <th style="width: 15%">Endereço</th>
+                                <th style="width: 150px">Série</th>
+                                <th style="width: 130px">Status</th>
+                                <th style="width: 90px">Prazo</th>
+                                <th style="width: 60px; text-align: center;">Obs</th>
+                                <th style="width: 100px; text-align: right;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        <h3>Nenhum registro encontrado</h3>
+                        <p>Ajuste os filtros ou adicione uma nova nota.</p>
+                    </div>
+                </div>
+                <div class="table-footer">
+                    <span class="page-counter" id="pageInfo">Carregando...</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="pagination-btn" id="btnPrev" onclick="changePage(-1)"><svg class="icon"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                            </svg></button>
+                        <button class="pagination-btn" id="btnNext" onclick="changePage(1)"><svg class="icon"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drawer-overlay" id="drawerOverlay" onclick="closeAllDrawers()"></div>
+
+        <div class="drawer" id="mainDrawer">
+            <div class="drawer-header">
+                <h2 class="drawer-title" id="drawerTitle">Nova Nota</h2>
+                <button onclick="closeAllDrawers()"><svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg></button>
+            </div>
+            <div class="drawer-body">
+                <form id="noteForm" onsubmit="handleSubmit(event)">
+                    <input type="hidden" id="f_id">
+                    <div class="form-group">
+                        <label>Título / Identificação</label>
+                        <input type="text" id="f_title" class="inp" placeholder="Ex: NF 2024 - Cliente X" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Data Email</label>
+                            <input type="date" id="f_date" class="inp" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="f_status" class="inp">
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em andamento">Em andamento</option>
+                                <option value="Finalizado">Finalizado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="f_type" class="inp">
+                                <option value="Locação">Locação</option>
+                                <option value="Carcaça">Carcaça</option>
+                                <option value="Alienação">Alienação</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ação Doc</label>
+                            <select id="f_action" class="inp">
+                                <option value="Emissão">Emissão</option>
+                                <option value="Validação">Validação</option>
+                                <option value="Entrada">Entrada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Local de Retirada</label>
+                        <select id="f_withdrawal" class="inp">
+                            <option value="SP">São Paulo (SP)</option>
+                            <option value="Fora de SP">Fora de SP</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Endereço</label>
+                            <input type="text" id="f_address" class="inp" placeholder="Logradouro...">
+                        </div>
+                        <div class="form-group">
+                            <label>Série</label>
+                            <input type="text" id="f_series" class="inp" placeholder="Ex: U64187E...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <textarea id="f_obs" class="inp" placeholder="Detalhes adicionais..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="drawer-footer">
+                <button class="btn-sec" onclick="closeAllDrawers()">Cancelar</button>
+                <button class="btn-new" onclick="document.getElementById('noteForm').requestSubmit()">Salvar
+                    Dados</button>
+            </div>
+        </div>
+
+        <div class="drawer" id="configDrawer">
+            <div class="drawer-header">
+                <h2 class="drawer-title">Preferências</h2>
+                <button onclick="closeAllDrawers()"><svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg></button>
+            </div>
+            <div class="drawer-body">
+                <div class="profile-card">
+                    <div class="p-avatar" id="pAvatar">U</div>
+                    <div class="p-info">
+                        <div class="p-name">Conta Ativa</div>
+                        <div class="p-email" id="pEmail">carregando...</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Alerta de Atraso (Dias)</label>
+                    <input type="number" id="cfg_delay" class="inp" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Itens por Página</label>
+                    <select id="cfg_perPage" class="inp">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+
+                <hr style="border:0; border-top:1px solid var(--border); margin: 24px 0;">
+
+                <button class="btn-logout" onclick="App.logout()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12" />
+                    </svg>
+                    Sair do Sistema
+                </button>
+            </div>
+            <div class="drawer-footer">
+                <button class="btn-new" style="width: 100%; justify-content: center;" onclick="saveConfig()">Salvar
+                    Configurações</button>
+            </div>
+        </div>
+
+        <div class="custom-modal-backdrop" id="customModal">
+            <div class="custom-modal">
+                <div class="cm-body">
+                    <div class="cm-icon" id="cmIcon"></div>
+                    <div class="cm-title" id="cmTitle">Confirmar</div>
+                    <div class="cm-desc" id="cmDesc">Mensagem aqui</div>
+                </div>
+                <div class="cm-footer">
+                    <button class="btn-modal btn-cancel" onclick="App.closeModal()">Cancelar</button>
+                    <button class="btn-modal btn-confirm" id="cmConfirmBtn">Confirmar</button>
+                </div>
+            </div>
+        </div>
+        <div class="toast-container" id="toastArea"></div>
+        <div id="popover" class="popover"></div>
+    </div>
+
+    <script>
+        // --- 1. FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUFCsdZMN2eWQRGI1IKajjVcaI7i2f84k",
+            authDomain: "notas-aa832.firebaseapp.com",
+            projectId: "notas-aa832",
+            storageBucket: "notas-aa832.firebasestorage.app",
+            messagingSenderId: "1040377213717",
+            appId: "1:1040377213717:web:8b5633a403ecf523be2f1c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- 2. AUTH LOGIC ---
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('loginPass');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const errorDiv = document.getElementById('loginError');
+            const btn = document.getElementById('btnLogin');
+            const remember = document.getElementById('rememberMe').checked;
+
+            btn.innerHTML = 'Autenticando...';
+            btn.disabled = true;
+            errorDiv.style.display = 'none';
+
+            try {
+                // Persistência
+                await auth.setPersistence(remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (error) {
+                console.error(error);
+                let msg = 'Erro ao fazer login.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') msg = 'E-mail ou senha inválidos.';
+                if (error.code === 'auth/invalid-email') msg = 'E-mail inválido.';
+                errorDiv.innerText = msg;
+                errorDiv.style.display = 'block';
+                btn.innerHTML = `<span>Entrar no Sistema</span><svg class="icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>`;
+                btn.disabled = false;
+            }
+        }
+
+        // --- 3. APP CORE ---
+        const App = {
+            data: [],
+            config: { delay: 6, perPage: 10 },
+            filter: 'Todos',
+            search: '',
+            page: 1,
+            editingId: null,
+            currentUser: null,
+            unsubscribe: null,
+
+            init() {
+                auth.onAuthStateChanged((user) => {
+                    // 6. Remove Skeleton assim que firebase resolve
+                    document.getElementById('skeleton-loader').style.display = 'none';
+
+                    if (user) {
+                        this.currentUser = user;
+                        document.getElementById('login-screen').style.display = 'none'; // Garante hidden
+                        document.getElementById('app-content').classList.remove('hidden');
+                        document.getElementById('app-content').style.display = 'flex';
+
+                        document.getElementById('pEmail').innerText = user.email;
+                        document.getElementById('pAvatar').innerText = user.email.charAt(0).toUpperCase();
+
+                        this.loadData();
+                    } else {
+                        this.currentUser = null;
+                        if (this.unsubscribe) this.unsubscribe();
+                        document.getElementById('login-screen').style.display = 'flex'; // Exibe Login
+                        document.getElementById('app-content').classList.add('hidden');
+                        document.getElementById('app-content').style.display = 'none';
+                    }
+                });
+
+                const savedConfig = localStorage.getItem('nexus_config');
+                const savedTheme = localStorage.getItem('nexus_theme') || 'light';
+                if (savedConfig) this.config = JSON.parse(savedConfig);
+                document.documentElement.setAttribute('data-theme', savedTheme);
+
+                document.addEventListener('click', (e) => {
+                    const pop = document.getElementById('popover');
+                    if (!e.target.closest('.obs-btn') && !e.target.closest('.popover') && pop.style.display === 'block') {
+                        pop.style.display = 'none';
+                    }
+                });
+            },
+
+            loadData() {
+                if (!this.currentUser) return;
+
+                const notesRef = db.collection('notes')
+                    .where('uid', '==', this.currentUser.uid);
+
+                this.unsubscribe = notesRef.onSnapshot((snapshot) => {
+                    this.data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    this.data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    this.render();
+                }, (error) => {
+                    console.error("Erro ao ler dados:", error);
+                    this.showToast('Erro de conexão com o banco.', 'error');
+                });
+            },
+
+            async addOrUpdate(item) {
+                if (!this.currentUser) return;
+
+                try {
+                    if (this.editingId) {
+                        await db.collection('notes').doc(this.editingId).update(item);
+                        this.showToast('Registro atualizado com sucesso!', 'success');
+                    } else {
+                        await db.collection('notes').add({
+                            ...item,
+                            uid: this.currentUser.uid,
+                            createdAt: Date.now()
+                        });
+                        this.showToast('Nota criada com sucesso!', 'success');
+                    }
+                    closeAllDrawers();
+                } catch (e) {
+                    console.error(e);
+                    this.showToast('Erro ao salvar.', 'error');
+                }
+            },
+
+            async delete(id) {
+                this.confirm('Excluir Nota', 'Tem certeza que deseja remover este registro? Essa ação não pode ser desfeita.', 'danger', async () => {
+                    try {
+                        await db.collection('notes').doc(id).delete();
+                        this.showToast('Registro removido.', 'success');
+                    } catch (e) {
+                        this.showToast('Erro ao excluir.', 'error');
+                    }
+                });
+            },
+
+            async toggleStatus(id) {
+                const item = this.data.find(i => i.id === id);
+                if (!item) return;
+
+                const current = item.status;
+                let next = 'Pendente';
+                if (current === 'Pendente') next = 'Em andamento';
+                else if (current === 'Em andamento') next = 'Finalizado';
+                else if (current === 'Finalizado') next = 'Pendente';
+
+                try {
+                    await db.collection('notes').doc(id).update({ status: next });
+                    this.showToast(`Status alterado para: ${next}`, 'success');
+                } catch (e) {
+                    this.showToast('Erro ao atualizar status.', 'error');
+                }
+            },
+
+            logout() {
+                auth.signOut();
+                closeAllDrawers();
+            },
+
+            saveConfig() {
+                localStorage.setItem('nexus_config', JSON.stringify(this.config));
+                this.showToast('Configurações salvas.', 'success');
+                this.page = 1;
+                this.render();
+                closeAllDrawers();
+            },
+
+            getFilteredData() {
+                return this.data.filter(item => {
+                    const matchesStatus = this.filter === 'Todos' || item.status === this.filter;
+                    const s = this.search.toLowerCase();
+                    const matchesSearch = !s ||
+                        item.title.toLowerCase().includes(s) ||
+                        item.address.toLowerCase().includes(s) ||
+                        item.series.toLowerCase().includes(s);
+                    return matchesStatus && matchesSearch;
+                });
+            },
+
+            render() {
+                const counts = { Pendente: 0, 'Em andamento': 0, Finalizado: 0, Todos: 0 };
+                // 4. Mapa para contar séries duplicadas
+                const seriesCounts = {};
+
+                this.data.forEach(d => {
+                    counts.Todos++;
+                    if (counts[d.status] !== undefined) counts[d.status]++;
+
+                    // Contagem de Séries
+                    const s = (d.series || '').trim().toLowerCase();
+                    if (s) seriesCounts[s] = (seriesCounts[s] || 0) + 1;
+                });
+
+                document.getElementById('kpi-pendente').innerText = counts.Pendente;
+                document.getElementById('kpi-andamento').innerText = counts['Em andamento'];
+                document.getElementById('kpi-finalizado').innerText = counts.Finalizado;
+                document.getElementById('kpi-todos').innerText = counts.Todos;
+
+                document.querySelectorAll('.stat-card').forEach(c => {
+                    c.classList.remove('active');
+                    if ((this.filter === 'Todos' && c.classList.contains('sc-todos')) ||
+                        (this.filter === 'Pendente' && c.classList.contains('sc-pendente')) ||
+                        (this.filter === 'Em andamento' && c.classList.contains('sc-andamento')) ||
+                        (this.filter === 'Finalizado' && c.classList.contains('sc-finalizado'))) {
+                        c.classList.add('active');
+                    }
+                });
+
+                const filtered = this.getFilteredData();
+                const totalItems = filtered.length;
+                const start = (this.page - 1) * this.config.perPage;
+                const end = start + this.config.perPage;
+                const pageData = filtered.slice(start, end);
+
+                const tbody = document.getElementById('tableBody');
+                const emptyState = document.getElementById('emptyState');
+
+                tbody.innerHTML = '';
+
+                if (totalItems === 0) {
+                    tbody.parentElement.style.display = 'none';
+                    emptyState.style.display = 'flex';
+                } else {
+                    tbody.parentElement.style.display = 'table';
+                    emptyState.style.display = 'none';
+
+                    pageData.forEach(item => {
+                        const days = this.calcDays(item.date);
+                        const isLate = days > this.config.delay && item.status !== 'Finalizado';
+                        const dateFmt = item.date.split('-').reverse().join('/');
+
+                        // Checagem de série duplicada (baseado no contador global)
+                        const seriesKey = (item.series || '').trim().toLowerCase();
+                        const isSeriesDup = seriesKey && seriesCounts[seriesKey] > 1;
+
+                        let stClass = 'st-pendente';
+                        if (item.status === 'Em andamento') stClass = 'st-andamento';
+                        if (item.status === 'Finalizado') stClass = 'st-finalizado';
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td title="${item.title}">${item.title}</td>
+                            <td>${dateFmt}</td>
+                            <td>${item.type}</td>
+                            <td>${item.action}</td>
+                            <td title="${item.address}">${item.address}</td>
+                            <td class="${isSeriesDup ? 'text-red' : ''}">${item.series}</td>
+                            <td>
+                                <span class="status-dot ${stClass}" onclick="App.toggleStatus('${item.id}')" title="Clique para alterar status">
+                                    <span class="dot"></span>${item.status}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="delay-tag ${isLate ? 'late' : ''}">
+                                    ${isLate ? '<svg class="icon" style="width:14px; margin-right:4px;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' : ''}
+                                    ${days}d
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                ${item.obs ? `<button class="btn-icon obs-btn" style="margin: 0 auto;" onclick="showObs(this, '${item.obs.replace(/'/g, "\\'").replace(/\n/g, "<br>")}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg></button>` : ''}
+                            </td>
+                            <td class="action-cell">
+                                <button class="btn-icon" onclick="openEdit('${item.id}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
+                                <button class="btn-icon del" onclick="App.delete('${item.id}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+                document.getElementById('pageInfo').innerText = totalItems > 0
+                    ? `${start + 1}-${Math.min(end, totalItems)} de ${totalItems}`
+                    : '0 de 0';
+                document.getElementById('btnPrev').disabled = this.page === 1;
+                document.getElementById('btnNext').disabled = end >= totalItems;
+            },
+
+            calcDays(dateStr) {
+                const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+                const t = new Date(); t.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((t - d) / (1000 * 60 * 60 * 24));
+                return d > t ? 0 : diff;
+            },
+
+            confirm(title, msg, type, callback) {
+                const modal = document.getElementById('customModal');
+                const icon = document.getElementById('cmIcon');
+                const confirmBtn = document.getElementById('cmConfirmBtn');
+
+                document.getElementById('cmTitle').innerText = title;
+                document.getElementById('cmDesc').innerText = msg;
+
+                if (type === 'danger') {
+                    icon.className = 'cm-icon danger';
+                    icon.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>';
+                    confirmBtn.className = 'btn-modal btn-confirm danger';
+                    confirmBtn.innerText = 'Sim, excluir';
+                } else {
+                    icon.className = 'cm-icon';
+                    icon.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>';
+                    confirmBtn.className = 'btn-modal btn-confirm';
+                    confirmBtn.innerText = 'Confirmar';
+                }
+
+                const newBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+                newBtn.onclick = () => { callback(); App.closeModal(); };
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 10);
+            },
+
+            closeModal() {
+                const modal = document.getElementById('customModal');
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 200);
+            },
+
+            showToast(msg, type) {
+                const area = document.getElementById('toastArea');
+                const el = document.createElement('div');
+                el.className = `toast ${type}`;
+                const iconHtml = type === 'success'
+                    ? `<div class="t-icon-box"><svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></div>`
+                    : `<div class="t-icon-box"><svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg></div>`;
+                el.innerHTML = `${iconHtml} <span>${msg}</span>`;
+                area.appendChild(el);
+                void el.offsetWidth;
+                el.classList.add('show');
+                setTimeout(() => {
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 400);
+                }, 3500);
+            }
+        };
+
+        // --- Global Helpers ---
+        function openDrawer() {
+            App.editingId = null;
+            document.getElementById('drawerTitle').innerText = 'Nova Nota';
+            document.getElementById('noteForm').reset();
+            document.getElementById('f_date').valueAsDate = new Date();
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('mainDrawer').classList.add('open');
+        }
+
+        function openEdit(id) {
+            const item = App.data.find(i => i.id === id);
+            if (!item) return;
+            App.editingId = id;
+            document.getElementById('drawerTitle').innerText = 'Editar Nota';
+            document.getElementById('f_title').value = item.title;
+            document.getElementById('f_date').value = item.date;
+            document.getElementById('f_status').value = item.status;
+            document.getElementById('f_type').value = item.type;
+            document.getElementById('f_action').value = item.action;
+            document.getElementById('f_withdrawal').value = item.withdrawal;
+            document.getElementById('f_address').value = item.address;
+            document.getElementById('f_series').value = item.series;
+            document.getElementById('f_obs').value = item.obs || '';
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('mainDrawer').classList.add('open');
+        }
+
+        function closeAllDrawers() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+            document.getElementById('mainDrawer').classList.remove('open');
+            document.getElementById('configDrawer').classList.remove('open');
+            App.closeModal();
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const item = {
+                title: document.getElementById('f_title').value,
+                date: document.getElementById('f_date').value,
+                status: document.getElementById('f_status').value,
+                type: document.getElementById('f_type').value,
+                action: document.getElementById('f_action').value,
+                withdrawal: document.getElementById('f_withdrawal').value,
+                address: document.getElementById('f_address').value,
+                series: document.getElementById('f_series').value,
+                obs: document.getElementById('f_obs').value,
+            };
+            App.addOrUpdate(item);
+        }
+
+        function filterData(status) { App.filter = status; App.page = 1; App.render(); }
+        function handleSearch() { App.search = document.getElementById('searchInput').value; document.getElementById('clearSearchBtn').style.display = App.search ? 'block' : 'none'; App.page = 1; App.render(); }
+        function clearSearch() { document.getElementById('searchInput').value = ''; handleSearch(); }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('nexus_theme', next);
+        }
+        function changePage(dir) { App.page += dir; App.render(); }
+
+        function openConfig() {
+            document.getElementById('cfg_delay').value = App.config.delay;
+            document.getElementById('cfg_perPage').value = App.config.perPage;
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('configDrawer').classList.add('open');
+        }
+
+        function saveConfig() {
+            App.config.delay = parseInt(document.getElementById('cfg_delay').value) || 6;
+            App.config.perPage = parseInt(document.getElementById('cfg_perPage').value) || 10;
+            App.saveConfig();
+        }
+
+        /* 3. Função de Mostrar Obs Aprimorada */
+        function showObs(btn, text) {
+            const p = document.getElementById('popover');
+            const rect = btn.getBoundingClientRect();
+
+            p.innerHTML = `
+                <div class="popover-header"><span class="popover-title">Observações</span><span class="popover-close" onclick="document.getElementById('popover').style.display='none'"><svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></span></div>
+                <div class="popover-content">${text}</div>
+            `;
+
+            // Exibe primeiro para calcular altura real
+            p.style.display = 'block';
+            p.style.visibility = 'hidden';
+
+            const popWidth = 300;
+            const popHeight = p.offsetHeight;
+            const windowHeight = window.innerHeight;
+
+            // Cálculo Lateral (já existente)
+            let leftPos = rect.left - (popWidth / 2) + 14;
+            if (leftPos + popWidth > window.innerWidth) leftPos = window.innerWidth - popWidth - 20;
+            if (leftPos < 20) leftPos = 20;
+            p.style.left = leftPos + 'px';
+
+            // Cálculo Vertical (Novo)
+            // Se o espaço abaixo for insuficiente, joga pra cima
+            if (rect.bottom + popHeight + 20 > windowHeight) {
+                // Posiciona acima do botão
+                p.style.top = (rect.top + window.scrollY - popHeight - 10) + 'px';
+            } else {
+                // Posiciona abaixo (padrão)
+                p.style.top = (rect.top + window.scrollY + 35) + 'px';
+            }
+
+            p.style.visibility = 'visible';
+        }
+
+        App.init();
+    </script>
+</body>
+
+</html>
