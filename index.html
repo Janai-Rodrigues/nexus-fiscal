@@ -25,7 +25,7 @@
             --bg-body: #f8fafc;
             --bg-surface: #ffffff;
             --bg-subtle: #f1f5f9;
-            --border: #e2e8f0;
+            --border: #f1f5f9;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --icon-color: #475569;
@@ -54,14 +54,14 @@
             --bg-body: #0f172a;
             --bg-surface: #1e293b;
             --bg-subtle: #334155;
-            --border: #334155;
+            --border: #2a3441;
             --text-main: #f8fafc;
             --text-muted: #cbd5e1;
             --icon-color: #cbd5e1;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 
             --st-pending-bg: rgba(239, 68, 68, 0.15);
-            --st-pending-txt: #fca5a5;
+            --st-pending-txt: #ff5454;
             --st-active-bg: rgba(245, 158, 11, 0.15);
             --st-active-txt: #fcd34d;
             --st-done-bg: rgba(34, 197, 94, 0.15);
@@ -382,6 +382,12 @@
             position: relative;
             overflow: hidden;
             /* Sem efeito de mover no hover */
+            /* ADICIONE ESSA LINHA PARA SUMIR O RISQUINHO: */
+            background-clip: padding-box;
+
+            /* Garante que a borda seja sólida desde o início */
+            border: 1px solid var(--border);
+            position: relative;
         }
 
         /* Borda lateral colorida fixa para identificação */
@@ -439,13 +445,21 @@
             color: var(--st-total-txt);
         }
 
-        /* 1. Ajuste a classe .active genérica para deixar a borda mais grossa (gordinha) */
+        /* 2. Atualize a classe .active para garantir a borda gordinha sem sombras */
         .stat-card.active {
             background: var(--bg-body);
-            border-width: 2px;
-            /* Aumente aqui se quiser mais grossa (ex: 3px) */
+
+            /* Borda mais gordinha */
+            border-width: 3px;
+
+            /* Garante que não tenha sombra atrapalhando */
             box-shadow: none;
-            /* Remove sombra interna se houver, fica mais limpo */
+        }
+
+        /* 3. IMPORTANTE: Se você ainda tiver o código do ::before (a barrinha lateral antiga), 
+   é bom removê-la para não misturar os estilos visualmente */
+        .stat-card::before {
+            display: none;
         }
 
         /* 2. Adicione estas regras logo abaixo para pintar a borda com a cor certa quando ativo */
