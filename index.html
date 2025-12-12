@@ -25,7 +25,7 @@
             --bg-body: #f8fafc;
             --bg-surface: #ffffff;
             --bg-subtle: #f1f5f9;
-            --border: #f1f5f9;
+            --border: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --icon-color: #475569;
@@ -88,16 +88,6 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-muted);
-        }
-
-        .table-scroll::-webkit-scrollbar-track,
-        .drawer-body::-webkit-scrollbar-track {
-            background: var(--bg-surface);
-        }
-
-        .table-scroll::-webkit-scrollbar-thumb,
-        .drawer-body::-webkit-scrollbar-thumb {
-            border-color: var(--bg-surface);
         }
 
         /* --- Reset & Base --- */
@@ -278,7 +268,7 @@
             border-top: 1px solid var(--border);
         }
 
-        /* --- Theme Toggle FIX --- */
+        /* Theme Toggle */
         .theme-item .nav-icon {
             position: relative;
             width: 24px;
@@ -292,14 +282,11 @@
             width: 24px;
             height: 24px;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-
-            /* ADICIONE ESTAS 3 LINHAS ABAIXO PARA O ÍCONE APARECER: */
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
         }
 
-        /* Estado inicial (Light Mode: Sol visível, Lua escondida) */
         .icon-sun {
             opacity: 1;
             transform: rotate(0deg) scale(1);
@@ -312,7 +299,6 @@
             color: var(--text-main);
         }
 
-        /* Dark Mode: Sol esconde, Lua aparece */
         [data-theme="dark"] .icon-sun {
             opacity: 0;
             transform: rotate(-90deg) scale(0.5);
@@ -323,8 +309,7 @@
             transform: rotate(0deg) scale(1);
         }
 
-
-        /* Main Content Area */
+        /* Main Content */
         .content-wrapper {
             flex: 1;
             display: flex;
@@ -348,7 +333,6 @@
             font-size: 1.1rem;
         }
 
-        /* --- Stats (KPI Cards) IMPROVED --- */
         .main-container {
             flex: 1;
             padding: 24px 32px;
@@ -361,6 +345,7 @@
             margin: 0 auto;
         }
 
+        /* KPI Cards */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -378,19 +363,16 @@
             cursor: pointer;
             transition: all 0.2s;
             height: 80px;
-            /* Tamanho padronizado */
             position: relative;
             overflow: hidden;
-            /* Sem efeito de mover no hover */
-            /* ADICIONE ESSA LINHA PARA SUMIR O RISQUINHO: */
             background-clip: padding-box;
-
-            /* Garante que a borda seja sólida desde o início */
-            border: 1px solid var(--border);
-            position: relative;
         }
 
-        /* Borda lateral colorida fixa para identificação */
+        .stat-card:hover {
+            background: var(--bg-subtle);
+            border-color: var(--primary-glow);
+        }
+
         .stat-card::before {
             content: '';
             position: absolute;
@@ -399,27 +381,15 @@
             bottom: 0;
             width: 4px;
             background: var(--border);
-            /* Cor padrão */
             transition: background 0.3s;
+            display: none;
         }
 
-        .stat-card:hover {
-            background: var(--bg-subtle);
-            border-color: var(--primary-glow);
-        }
-
-        /* Specific Card Styles */
-        .sc-pendente::before {
-            background: var(--st-pending-txt);
-        }
+        /* Removed side bar */
 
         .sc-pendente .stat-value,
         .sc-pendente .stat-icon-decoration {
             color: var(--st-pending-txt);
-        }
-
-        .sc-andamento::before {
-            background: var(--st-active-txt);
         }
 
         .sc-andamento .stat-value,
@@ -427,17 +397,9 @@
             color: var(--st-active-txt);
         }
 
-        .sc-finalizado::before {
-            background: var(--st-done-txt);
-        }
-
         .sc-finalizado .stat-value,
         .sc-finalizado .stat-icon-decoration {
             color: var(--st-done-txt);
-        }
-
-        .sc-todos::before {
-            background: var(--st-total-txt);
         }
 
         .sc-todos .stat-value,
@@ -445,24 +407,12 @@
             color: var(--st-total-txt);
         }
 
-        /* 2. Atualize a classe .active para garantir a borda gordinha sem sombras */
         .stat-card.active {
             background: var(--bg-body);
-
-            /* Borda mais gordinha */
             border-width: 3px;
-
-            /* Garante que não tenha sombra atrapalhando */
             box-shadow: none;
         }
 
-        /* 3. IMPORTANTE: Se você ainda tiver o código do ::before (a barrinha lateral antiga), 
-   é bom removê-la para não misturar os estilos visualmente */
-        .stat-card::before {
-            display: none;
-        }
-
-        /* 2. Adicione estas regras logo abaixo para pintar a borda com a cor certa quando ativo */
         .sc-pendente.active {
             border-color: var(--st-pending-txt);
         }
@@ -509,7 +459,6 @@
             align-items: center;
             justify-content: center;
             background: var(--bg-body);
-            /* Fundo suave no ícone */
             opacity: 1;
         }
 
@@ -518,7 +467,6 @@
             height: 24px;
             stroke-width: 2;
         }
-
 
         /* Action Bar */
         .action-bar {
@@ -775,21 +723,18 @@
             font-weight: 700;
         }
 
-        /* Pagination Footer Updated */
         .drawer-footer-pagination {
             padding: 8px 24px;
-            /* Barra mais estreita */
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            /* Alinhamento vertical */
             gap: 16px;
             background: var(--bg-subtle);
             min-height: 48px;
         }
 
-        /* Skeleton & Login */
+        /* Login & Skeleton */
         #skeleton-loader {
             position: fixed;
             inset: 0;
@@ -910,10 +855,6 @@
             align-items: center;
         }
 
-        .drawer-header button {
-            color: var(--text-main);
-        }
-
         .drawer-title {
             font-weight: 700;
             font-size: 1.1rem;
@@ -960,7 +901,7 @@
             min-height: 80px;
         }
 
-        /* Filter & Modals */
+        /* Advanced Filter Modal */
         .adv-filter-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1044,10 +985,6 @@
             background: var(--bg-subtle);
         }
 
-        .cm-header button {
-            color: var(--text-main);
-        }
-
         .cm-body {
             padding: 24px;
         }
@@ -1061,7 +998,7 @@
             background: var(--bg-subtle);
         }
 
-        /* Toast & Popover */
+        /* Toasts */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -1102,31 +1039,6 @@
         .toast.error {
             border-left-color: var(--st-pending-txt);
         }
-
-        .popover {
-            position: absolute;
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 300px;
-            box-shadow: var(--shadow-float);
-            z-index: 150;
-            display: none;
-            padding: 12px;
-            animation: popIn 0.2s ease-out;
-        }
-
-        @keyframes popIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
     </style>
 </head>
 
@@ -1159,13 +1071,11 @@
                         </svg>
                     </div>
                 </div>
-
                 <div class="remember-box">
                     <input type="checkbox" id="rememberMe"
                         style="accent-color:var(--primary); width:16px; height:16px;">
                     <label for="rememberMe" style="cursor:pointer">Lembrar de mim</label>
                 </div>
-
                 <div id="loginError" style="color:var(--st-pending-txt); margin-bottom:15px; font-size:0.9rem;"></div>
                 <button type="submit" class="btn-login" id="btnLogin">Entrar</button>
             </form>
@@ -1173,7 +1083,6 @@
     </div>
 
     <div id="app-content" class="app-layout hidden">
-
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <button class="menu-toggle" onclick="toggleSidebar()">
@@ -1184,28 +1093,21 @@
                 </button>
                 <span class="logo-text">Nexus Fiscal</span>
             </div>
-
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" onclick="navTo('home', this)" title="Controle de Retornos">
-                    <div class="nav-icon">
-                        <svg class="icon" viewBox="0 0 24 24">
+                    <div class="nav-icon"><svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                        </svg>
-                    </div>
-                    <span class="nav-label">Tabela Retornos</span>
+                        </svg></div>
+                    <span class="nav-label">Retornos</span>
                 </a>
-
                 <a href="#" class="nav-item" onclick="navTo('returns', this)" title="Controle de Devoluções">
-                    <div class="nav-icon">
-                        <svg class="icon" viewBox="0 0 24 24">
+                    <div class="nav-icon"><svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
-                    </div>
+                        </svg></div>
                     <span class="nav-label">Devoluções</span>
                 </a>
-
                 <a href="#" class="nav-item" onclick="openConfig()" title="Configurações">
                     <div class="nav-icon"><svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -1213,7 +1115,6 @@
                         </svg></div>
                     <span class="nav-label">Configurações</span>
                 </a>
-
                 <a href="#" class="nav-item theme-item" onclick="toggleTheme()" title="Alterar Tema">
                     <div class="nav-icon">
                         <svg class="t-icon icon-sun" viewBox="0 0 24 24">
@@ -1228,7 +1129,6 @@
                     <span class="nav-label">Tema</span>
                 </a>
             </nav>
-
             <div class="sidebar-footer">
                 <a href="#" class="nav-item" onclick="App.logout()" title="Sair do Sistema"
                     style="color: var(--st-pending-txt);">
@@ -1246,7 +1146,7 @@
                 <div class="page-title" id="pageHeaderTitle">Controle de Retornos</div>
             </header>
 
-            <div class="main-container" id="viewHome">
+            <div class="main-container" id="viewMain">
                 <div class="stats-row">
                     <div class="stat-card sc-pendente" onclick="quickFilter('Pendente')">
                         <div class="stat-info">
@@ -1302,21 +1202,18 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </div>
-
                     <button class="btn-tool" id="btnAdvFilter" onclick="openAdvFilter()" title="Filtro Avançado">
                         <svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
                         </svg>
                     </button>
-
                     <button class="btn-tool" onclick="openDownloadModal()" title="Exportar Excel (.xlsx)">
                         <svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                     </button>
-
                     <button class="btn-new" onclick="openDrawer()">
                         <svg class="icon" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1328,66 +1225,41 @@
                 <div class="table-wrapper">
                     <div class="table-scroll">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px"><input type="checkbox" id="checkAll"
-                                            onchange="App.toggleAll(this.checked)" class="row-check"></th>
-                                    <th style="width: 20%">Título / EMAIL</th>
-                                    <th style="width: 100px">Data</th>
-                                    <th style="width: 100px">Tipo</th>
-                                    <th style="width: 100px">Ação</th>
-                                    <th style="width: 15%">Endereço</th>
-                                    <th style="width: 150px">Série</th>
-                                    <th style="width: 130px">Status</th>
-                                    <th style="width: 90px">Dias</th>
-                                    <th style="width: 60px; text-align: center;">Obs</th>
-                                    <th style="width: 100px; text-align: right;"></th>
-                                </tr>
-                            </thead>
+                            <thead id="dynamicHeader"></thead>
                             <tbody id="tableBody"></tbody>
                         </table>
                         <div id="emptyState"
                             style="display:none; flex-direction:column; align-items:center; padding:40px; color:var(--text-muted);">
                             <h3>Nenhum registro encontrado</h3>
-                            <p>Ajuste os filtros ou adicione uma nova nota.</p>
+                            <p>Ajuste os filtros ou adicione um novo registro.</p>
                         </div>
                     </div>
                     <div class="drawer-footer-pagination">
                         <span id="pageInfo"
                             style="font-size:0.85rem; color:var(--text-muted); font-weight:600; margin-right:auto;">Carregando...</span>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn-tool" id="btnPrev" onclick="changePage(-1)" style="padding:6px;">
-                                <svg class="icon" viewBox="0 0 24 24">
+                            <button class="btn-tool" id="btnPrev" onclick="changePage(-1)" style="padding:6px;"><svg
+                                    class="icon" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15.75 19.5L8.25 12l7.5-7.5" />
-                                </svg>
-                            </button>
-                            <button class="btn-tool" id="btnNext" onclick="changePage(1)" style="padding:6px;">
-                                <svg class="icon" viewBox="0 0 24 24">
+                                </svg></button>
+                            <button class="btn-tool" id="btnNext" onclick="changePage(1)" style="padding:6px;"><svg
+                                    class="icon" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                </svg>
-                            </button>
+                                </svg></button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="main-container hidden" id="viewReturns">
-                <div style="text-align:center; margin-top:100px;">
-                    <h2>Módulo de Devoluções</h2>
-                    <p style="color:var(--text-muted); margin-top:10px;">Implementação Futura</p>
-                </div>
-            </div>
         </div>
-
     </div>
 
     <div class="drawer-overlay" id="drawerOverlay" onclick="closeAllDrawers()"></div>
 
     <div class="drawer" id="mainDrawer">
         <div class="drawer-header">
-            <h2 class="drawer-title" id="drawerTitle">Nova Nota</h2>
+            <h2 class="drawer-title" id="drawerTitle">Novo Registro</h2>
             <button onclick="closeAllDrawers()"><svg class="icon" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg></button>
@@ -1395,37 +1267,81 @@
         <div class="drawer-body">
             <form id="noteForm" onsubmit="handleSubmit(event)">
                 <input type="hidden" id="f_id">
-                <div class="form-group"><label>Título / Identificação</label><input type="text" id="f_title" class="inp"
-                        required></div>
+
+                <div class="form-group grp-retornos">
+                    <label>Título / Identificação</label>
+                    <input type="text" id="f_title" class="inp">
+                </div>
+
+                <div class="grp-devolucoes hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div class="form-group"><label>Nota de Venda</label><input type="text" id="f_saleNote" class="inp">
+                    </div>
+                    <div class="form-group"><label>Nota de Devolução</label><input type="text" id="f_returnNote"
+                            class="inp"></div>
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                    <div class="form-group"><label>Data Email</label><input type="date" id="f_date" class="inp"
-                            required></div>
-                    <div class="form-group"><label>Status</label><select id="f_status" class="inp">
+                    <div class="form-group">
+                        <label id="lblDate">Data Email</label>
+                        <input type="date" id="f_date" class="inp" required>
+                    </div>
+                    <div class="form-group"><label>Status</label>
+                        <select id="f_status" class="inp">
                             <option value="Pendente">Pendente</option>
                             <option value="Em andamento">Em andamento</option>
                             <option value="Finalizado">Finalizado</option>
-                        </select></div>
+                        </select>
+                    </div>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                    <div class="form-group"><label>Tipo</label><select id="f_type" class="inp">
-                            <option value="Locação">Locação</option>
-                            <option value="Carcaça">Carcaça</option>
-                            <option value="Alienação">Alienação</option>
-                        </select></div>
-                    <div class="form-group"><label>Ação Doc</label><select id="f_action" class="inp">
-                            <option value="Emissão">Emissão</option>
-                            <option value="Validação">Validação</option>
-                            <option value="Entrada">Entrada (Lançamento)</option>
-                        </select></div>
+
+                <div class="grp-retornos">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="form-group"><label>Tipo</label>
+                            <select id="f_type" class="inp">
+                                <option value="Locação">Locação</option>
+                                <option value="Carcaça">Carcaça</option>
+                                <option value="Alienação">Alienação</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Ação Doc</label>
+                            <select id="f_action_ret" class="inp">
+                                <option value="Emissão">Emissão</option>
+                                <option value="Validação">Validação</option>
+                                <option value="Entrada">Entrada (Lançamento)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Local</label>
+                        <select id="f_withdrawal" class="inp">
+                            <option value="SP">São Paulo (SP)</option>
+                            <option value="Fora de SP">Fora de SP</option>
+                        </select>
+                    </div>
+                    <div style="display:grid; grid-template-columns:3fr 2fr; gap:16px;">
+                        <div class="form-group"><label>Endereço</label><input type="text" id="f_address" class="inp">
+                        </div>
+                        <div class="form-group"><label>Série</label><input type="text" id="f_series" class="inp"></div>
+                    </div>
                 </div>
-                <div class="form-group"><label>Local</label><select id="f_withdrawal" class="inp">
-                        <option value="SP">São Paulo (SP)</option>
-                        <option value="Fora de SP">Fora de SP</option>
-                    </select></div>
-                <div style="display:grid; grid-template-columns:3fr 2fr; gap:16px;">
-                    <div class="form-group"><label>Endereço</label><input type="text" id="f_address" class="inp"></div>
-                    <div class="form-group"><label>Série</label><input type="text" id="f_series" class="inp"></div>
+
+                <div class="grp-devolucoes hidden">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="form-group"><label>Ação</label>
+                            <select id="f_action_dev" class="inp">
+                                <option value="Emissão">Emissão</option>
+                                <option value="Lançamento">Lançamento</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Divergência</label>
+                            <select id="f_divergence" class="inp">
+                                <option value="Sem divergência">Sem divergência</option>
+                                <option value="Validar">Validar</option>
+                                <option value="Divergente">Divergente</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="form-group"><label>Observações</label><textarea id="f_obs" class="inp"></textarea></div>
             </form>
         </div>
@@ -1475,45 +1391,14 @@
                     </svg></button>
             </div>
             <div class="cm-body">
-                <div class="adv-filter-grid">
-                    <div>
-                        <div class="filter-section-title">Status</div>
-                        <div class="checkbox-list">
-                            <label class="cb-item"><input type="checkbox" name="f_st" value="Pendente"> Pendente</label>
-                            <label class="cb-item"><input type="checkbox" name="f_st" value="Em andamento"> Em
-                                andamento</label>
-                            <label class="cb-item"><input type="checkbox" name="f_st" value="Finalizado">
-                                Finalizado</label>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="filter-section-title">Tipo</div>
-                        <div class="checkbox-list">
-                            <label class="cb-item"><input type="checkbox" name="f_tp" value="Locação"> Locação</label>
-                            <label class="cb-item"><input type="checkbox" name="f_tp" value="Carcaça"> Carcaça</label>
-                            <label class="cb-item"><input type="checkbox" name="f_tp" value="Alienação">
-                                Alienação</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="adv-filter-grid">
-                    <div>
-                        <div class="filter-section-title">Ação</div>
-                        <div class="checkbox-list">
-                            <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
-                            <label class="cb-item"><input type="checkbox" name="f_ac" value="Validação">
-                                Validação</label>
-                            <label class="cb-item"><input type="checkbox" name="f_ac" value="Entrada"> Lançamento
-                                (Entrada)</label>
-                        </div>
-                    </div>
+                <div id="filterDynamicContent"></div>
+                <div class="adv-filter-grid"
+                    style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
                     <div>
                         <div class="filter-section-title">Período</div>
-                        <div class="form-group" style="margin-bottom:8px;">
-                            <input type="date" id="adv_dt_start" class="inp" style="padding:6px;">
-                        </div>
-                        <div class="form-group">
-                            <input type="date" id="adv_dt_end" class="inp" style="padding:6px;">
+                        <div class="form-group" style="margin-bottom:8px;"><input type="date" id="adv_dt_start"
+                                class="inp" style="padding:6px;"></div>
+                        <div class="form-group"><input type="date" id="adv_dt_end" class="inp" style="padding:6px;">
                         </div>
                     </div>
                 </div>
@@ -1553,27 +1438,24 @@
         </div>
     </div>
 
-    <div class="toast-container" id="toastArea"></div>
-    <!-- <div id="popover" class="popover"></div> -->
-
     <div class="custom-modal-backdrop" id="obsModal">
         <div class="custom-modal" style="width: 100%; max-width: 500px;">
             <div class="cm-header"
                 style="background: #f9f1f1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px;">
                 <span
                     style="font-weight: 800; color: #475569; font-size: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase;">OBSERVAÇÕES</span>
-                <button onclick="closeObsModal()" style="color: #64748b;">
-                    <svg class="icon" style="width: 20px; height: 20px;" viewBox="0 0 24 24">
+                <button onclick="closeObsModal()" style="color: #64748b;"><svg class="icon"
+                        style="width: 20px; height: 20px;" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                    </svg></button>
             </div>
-
             <div class="cm-body" id="obsContent"
                 style="padding: 24px; font-size: 0.95rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
             </div>
         </div>
     </div>
+
+    <div class="toast-container" id="toastArea"></div>
 
     <script>
         // --- CONFIG FIREBASE ---
@@ -1599,14 +1481,10 @@
             const remember = document.getElementById('rememberMe').checked;
 
             btn.innerText = 'Entrando...'; btn.disabled = true; err.innerText = '';
-
-            // Persistência
             const persistenceMode = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
             auth.setPersistence(persistenceMode)
-                .then(() => {
-                    return auth.signInWithEmailAndPassword(email, pass);
-                })
+                .then(() => auth.signInWithEmailAndPassword(email, pass))
                 .catch((error) => {
                     console.error(error);
                     err.innerText = 'Login falhou. Verifique suas credenciais.';
@@ -1614,52 +1492,50 @@
                 });
         }
 
-        // Função do olho da senha
         function togglePassVis() {
             const inp = document.getElementById('loginPass');
             const open = document.getElementById('eyeIconOpen');
             const close = document.getElementById('eyeIconClose');
             if (inp.type === 'password') {
-                inp.type = 'text';
-                open.classList.add('hidden');
-                close.classList.remove('hidden');
+                inp.type = 'text'; open.classList.add('hidden'); close.classList.remove('hidden');
             } else {
-                inp.type = 'password';
-                open.classList.remove('hidden');
-                close.classList.add('hidden');
+                inp.type = 'password'; open.classList.remove('hidden'); close.classList.add('hidden');
             }
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('expanded');
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
 
+        // --- NAVIGATION CONTROLLER ---
         function navTo(view, el) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             if (el) el.classList.add('active');
 
+            // Reset
+            App.filters = { status: [], type: [], action: [], divergence: [], search: '', dateStart: null, dateEnd: null };
+            App.page = 1;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+
             if (view === 'home') {
-                document.getElementById('viewHome').classList.remove('hidden');
-                document.getElementById('viewReturns').classList.add('hidden');
+                App.module = 'retornos';
                 document.getElementById('pageHeaderTitle').innerText = 'Controle de Retornos';
+                document.getElementById('searchInput').placeholder = "Buscar por email, endereço ou série...";
             } else if (view === 'returns') {
-                document.getElementById('viewHome').classList.add('hidden');
-                document.getElementById('viewReturns').classList.remove('hidden');
+                App.module = 'devolucoes';
                 document.getElementById('pageHeaderTitle').innerText = 'Controle de Devoluções';
+                document.getElementById('searchInput').placeholder = "Buscar por nota venda, devolução...";
             }
+            App.render();
         }
 
         // --- APP CORE ---
         const App = {
             data: [],
             config: { delay: 6, perPage: 10 },
+            module: 'retornos', // 'retornos' ou 'devolucoes'
             filters: {
-                status: [], // Empty = All
-                type: [],
-                action: [],
-                search: '',
-                dateStart: null,
-                dateEnd: null
+                status: [], type: [], action: [], divergence: [],
+                search: '', dateStart: null, dateEnd: null
             },
             selectedIds: new Set(),
             page: 1,
@@ -1697,13 +1573,13 @@
                         this.data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         this.data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                         this.render();
-                    }, err => {
-                        console.error("Erro Firestore:", err);
-                        // Não bloqueamos a UI, apenas logamos
-                    });
+                    }, err => console.error("Erro Firestore:", err));
             },
 
             addOrUpdate(item) {
+                // Garante que o item seja salvo com o identificador do módulo atual
+                item.module = this.module;
+
                 const prom = this.editingId
                     ? db.collection('notes').doc(this.editingId).update(item)
                     : db.collection('notes').add({ ...item, uid: this.currentUser.uid, createdAt: Date.now() });
@@ -1751,11 +1627,26 @@
 
             getFilteredData() {
                 return this.data.filter(item => {
+                    // Filtra pelo módulo atual (se o item não tiver 'module', assume 'retornos' para compatibilidade)
+                    const itemModule = item.module || 'retornos';
+                    if (itemModule !== this.module) return false;
+
                     const s = this.filters.search.toLowerCase();
-                    if (s && !item.title.toLowerCase().includes(s) && !item.address.toLowerCase().includes(s) && !item.series.toLowerCase().includes(s)) return false;
+                    if (s) {
+                        if (this.module === 'retornos') {
+                            if (!item.title?.toLowerCase().includes(s) && !item.address?.toLowerCase().includes(s) && !item.series?.toLowerCase().includes(s)) return false;
+                        } else {
+                            // Busca específica para Devoluções
+                            if (!item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
+                        }
+                    }
+
                     if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
                     if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
                     if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
+                    // Filtro de divergência (específico de devoluções)
+                    if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
+
                     if (this.filters.dateStart || this.filters.dateEnd) {
                         const d = item.date;
                         if (this.filters.dateStart && d < this.filters.dateStart) return false;
@@ -1766,13 +1657,46 @@
             },
 
             render() {
+                // 1. Configurar Cabeçalhos da Tabela Dinamicamente
+                const thead = document.getElementById('dynamicHeader');
+                if (this.module === 'retornos') {
+                    thead.innerHTML = `
+                    <tr>
+                        <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
+                        <th style="width: 20%">Título / EMAIL</th>
+                        <th style="width: 100px">Data</th>
+                        <th style="width: 100px">Tipo</th>
+                        <th style="width: 100px">Ação</th>
+                        <th style="width: 15%">Endereço</th>
+                        <th style="width: 150px">Série</th>
+                        <th style="width: 130px">Status</th>
+                        <th style="width: 90px">Dias</th>
+                        <th style="width: 60px; text-align: center;">Obs</th>
+                        <th style="width: 100px; text-align: right;"></th>
+                    </tr>`;
+                } else {
+                    thead.innerHTML = `
+                    <tr>
+                        <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
+                        <th style="width: 15%">Nota Venda</th>
+                        <th style="width: 15%">Nota Dev.</th>
+                        <th style="width: 100px">Recebimento</th>
+                        <th style="width: 120px">Ação</th>
+                        <th style="width: 140px">Divergência</th>
+                        <th style="width: 130px">Status</th>
+                        <th style="width: 90px">Dias</th>
+                        <th style="width: 60px; text-align: center;">Obs</th>
+                        <th style="width: 100px; text-align: right;"></th>
+                    </tr>`;
+                }
+
+                // 2. Calcular KPIs (baseado apenas no módulo atual)
+                const moduleData = this.data.filter(d => (d.module || 'retornos') === this.module);
                 const counts = { Pendente: 0, 'Em andamento': 0, Finalizado: 0, Todos: 0 };
-                const seriesCounts = {};
-                this.data.forEach(d => {
+
+                moduleData.forEach(d => {
                     counts.Todos++;
                     if (counts[d.status] !== undefined) counts[d.status]++;
-                    const s = (d.series || '').trim().toLowerCase();
-                    if (s) seriesCounts[s] = (seriesCounts[s] || 0) + 1;
                 });
 
                 ['Pendente', 'Em andamento', 'Finalizado', 'Todos'].forEach(k => {
@@ -1792,6 +1716,7 @@
                     document.getElementById('btnAdvFilter').classList.add('active');
                 }
 
+                // 3. Renderizar Linhas
                 const filtered = this.getFilteredData();
                 const start = (this.page - 1) * this.config.perPage;
                 const pageData = filtered.slice(start, start + this.config.perPage);
@@ -1801,12 +1726,21 @@
                 document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'flex';
 
                 const allSelected = pageData.length > 0 && pageData.every(d => this.selectedIds.has(d.id));
-                document.getElementById('checkAll').checked = allSelected;
+                const checkAll = document.getElementById('checkAll');
+                if (checkAll) checkAll.checked = allSelected;
+
+                // Check de duplicidade (apenas para série em retornos)
+                const seriesCounts = {};
+                if (this.module === 'retornos') {
+                    moduleData.forEach(d => {
+                        const s = (d.series || '').trim().toLowerCase();
+                        if (s) seriesCounts[s] = (seriesCounts[s] || 0) + 1;
+                    });
+                }
 
                 pageData.forEach(item => {
                     const days = this.calcDays(item.date);
                     const isLate = days > this.config.delay && item.status !== 'Finalizado';
-                    const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
                     const isSel = this.selectedIds.has(item.id);
 
                     let stClass = 'st-pendente';
@@ -1816,22 +1750,42 @@
                     const tr = document.createElement('tr');
                     if (isSel) tr.classList.add('selected');
 
-                    tr.innerHTML = `
+                    const obsBtn = item.obs ? `<button class="btn-icon obs-btn" style="margin:0 auto" onclick="showObs(this, '${item.obs.replace(/'/g, "\\'").replace(/\n/g, "<br>")}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg></button>` : '';
+                    const actions = `
+                    <button class="btn-icon" onclick="openEdit('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
+                    <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+                `;
+
+                    if (this.module === 'retornos') {
+                        const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
+                        tr.innerHTML = `
                         <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
-                        <td>${item.title}</td>
+                        <td>${item.title || '-'}</td>
                         <td>${item.date.split('-').reverse().join('/')}</td>
-                        <td>${item.type}</td>
-                        <td>${item.action}</td>
-                        <td title="${item.address}">${item.address}</td>
-                        <td class="${isDup ? 'text-red' : ''}">${item.series}</td>
+                        <td>${item.type || '-'}</td>
+                        <td>${item.action || '-'}</td>
+                        <td title="${item.address}">${item.address || '-'}</td>
+                        <td class="${isDup ? 'text-red' : ''}">${item.series || '-'}</td>
                         <td><span class="status-dot ${stClass}" onclick="App.toggleStatus('${item.id}')"><span class="dot"></span>${item.status}</span></td>
                         <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
-                        <td style="text-align:center">${item.obs ? `<button class="btn-icon obs-btn" style="margin:0 auto" onclick="showObs(this, '${item.obs.replace(/'/g, "\\'").replace(/\n/g, "<br>")}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg></button>` : ''}</td>
-                        <td class="action-cell">
-                            <button class="btn-icon" onclick="openEdit('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
-                            <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
-                        </td>
+                        <td style="text-align:center">${obsBtn}</td>
+                        <td class="action-cell">${actions}</td>
                     `;
+                    } else {
+                        // Renderização específica para Devoluções
+                        tr.innerHTML = `
+                        <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
+                        <td>${item.saleNote || '-'}</td>
+                        <td>${item.returnNote || '-'}</td>
+                        <td>${item.date.split('-').reverse().join('/')}</td>
+                        <td>${item.action || '-'}</td>
+                        <td>${item.divergence || '-'}</td>
+                        <td><span class="status-dot ${stClass}" onclick="App.toggleStatus('${item.id}')"><span class="dot"></span>${item.status}</span></td>
+                        <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
+                        <td style="text-align:center">${obsBtn}</td>
+                        <td class="action-cell">${actions}</td>
+                    `;
+                    }
                     tbody.appendChild(tr);
                 });
 
@@ -1872,7 +1826,6 @@
                 this.page = 1; this.render(); closeAllDrawers();
             },
 
-            // --- FUNÇÃO EXCEL (XLSX) ---
             downloadExcel(mode) {
                 let list = [];
                 const allFiltered = this.getFilteredData();
@@ -1884,31 +1837,40 @@
                     list = allFiltered.slice(start, start + this.config.perPage);
                 } else if (mode === 'selected') {
                     list = this.data.filter(i => this.selectedIds.has(i.id));
-                    if (list.length === 0) {
-                        this.showToast("Nenhum item selecionado.", "error");
-                        return;
-                    }
+                    if (list.length === 0) { this.showToast("Nenhum item selecionado.", "error"); return; }
                 }
 
-                // Prepara os dados limpos para o Excel
-                const dataForExcel = list.map(item => ({
-                    "Título / Identificação": item.title,
-                    "Data": item.date.split('-').reverse().join('/'),
-                    "Tipo": item.type,
-                    "Ação": item.action,
-                    "Local": item.withdrawal,
-                    "Endereço": item.address,
-                    "Série": item.series,
-                    "Status": item.status,
-                    "Observações": item.obs || ""
-                }));
+                let dataForExcel = [];
 
-                // Gera a planilha usando SheetJS
+                if (this.module === 'retornos') {
+                    dataForExcel = list.map(item => ({
+                        "Título / Identificação": item.title,
+                        "Data": item.date.split('-').reverse().join('/'),
+                        "Tipo": item.type,
+                        "Ação": item.action,
+                        "Local": item.withdrawal,
+                        "Endereço": item.address,
+                        "Série": item.series,
+                        "Status": item.status,
+                        "Observações": item.obs || ""
+                    }));
+                } else {
+                    // Exportação específica para Devoluções
+                    dataForExcel = list.map(item => ({
+                        "Nota Venda": item.saleNote,
+                        "Nota Devolução": item.returnNote,
+                        "Data Recebimento": item.date.split('-').reverse().join('/'),
+                        "Ação": item.action,
+                        "Divergência": item.divergence,
+                        "Status": item.status,
+                        "Observações": item.obs || ""
+                    }));
+                }
+
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.json_to_sheet(dataForExcel);
-                XLSX.utils.book_append_sheet(wb, ws, "Dados Nexus");
-
-                XLSX.writeFile(wb, `Nexus_Export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, this.module === 'retornos' ? "Retornos" : "Devoluções");
+                XLSX.writeFile(wb, `Nexus_${this.module}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 
                 document.getElementById('downloadModal').classList.remove('active');
                 setTimeout(() => document.getElementById('downloadModal').style.display = 'none', 200);
@@ -1918,9 +1880,13 @@
         // --- GLOBAL UI HANDLERS ---
         function openDrawer() {
             App.editingId = null;
-            document.getElementById('drawerTitle').innerText = 'Nova Nota';
+            document.getElementById('drawerTitle').innerText = 'Novo Registro';
             document.getElementById('noteForm').reset();
             document.getElementById('f_date').valueAsDate = new Date();
+
+            // Controla quais campos aparecem baseado no módulo
+            toggleFormFields();
+
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('mainDrawer').classList.add('open');
         }
@@ -1929,18 +1895,41 @@
             const item = App.data.find(i => i.id === id);
             if (!item) return;
             App.editingId = id;
-            document.getElementById('drawerTitle').innerText = 'Editar Nota';
-            document.getElementById('f_title').value = item.title;
+            document.getElementById('drawerTitle').innerText = 'Editar Registro';
+
+            toggleFormFields();
+
             document.getElementById('f_date').value = item.date;
             document.getElementById('f_status').value = item.status;
-            document.getElementById('f_type').value = item.type;
-            document.getElementById('f_action').value = item.action;
-            document.getElementById('f_withdrawal').value = item.withdrawal;
-            document.getElementById('f_address').value = item.address;
-            document.getElementById('f_series').value = item.series;
             document.getElementById('f_obs').value = item.obs || '';
+
+            if (App.module === 'retornos') {
+                document.getElementById('f_title').value = item.title;
+                document.getElementById('f_type').value = item.type;
+                document.getElementById('f_action_ret').value = item.action;
+                document.getElementById('f_withdrawal').value = item.withdrawal;
+                document.getElementById('f_address').value = item.address;
+                document.getElementById('f_series').value = item.series;
+            } else {
+                // Preenche campos específicos de devolução
+                document.getElementById('f_saleNote').value = item.saleNote;
+                document.getElementById('f_returnNote').value = item.returnNote;
+                document.getElementById('f_action_dev').value = item.action;
+                document.getElementById('f_divergence').value = item.divergence;
+            }
+
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('mainDrawer').classList.add('open');
+        }
+
+        function toggleFormFields() {
+            const isRet = App.module === 'retornos';
+            // Mostra/Esconde grupos de inputs
+            document.querySelectorAll('.grp-retornos').forEach(el => el.classList.toggle('hidden', !isRet));
+            document.querySelectorAll('.grp-devolucoes').forEach(el => el.classList.toggle('hidden', isRet));
+
+            // Altera label da data
+            document.getElementById('lblDate').innerText = isRet ? 'Data Email' : 'Data Recebimento';
         }
 
         function closeAllDrawers() {
@@ -1951,22 +1940,37 @@
 
         function handleSubmit(e) {
             e.preventDefault();
-            App.addOrUpdate({
-                title: document.getElementById('f_title').value,
+            const commonData = {
                 date: document.getElementById('f_date').value,
                 status: document.getElementById('f_status').value,
-                type: document.getElementById('f_type').value,
-                action: document.getElementById('f_action').value,
-                withdrawal: document.getElementById('f_withdrawal').value,
-                address: document.getElementById('f_address').value,
-                series: document.getElementById('f_series').value,
                 obs: document.getElementById('f_obs').value
-            });
+            };
+
+            if (App.module === 'retornos') {
+                App.addOrUpdate({
+                    ...commonData,
+                    title: document.getElementById('f_title').value,
+                    type: document.getElementById('f_type').value,
+                    action: document.getElementById('f_action_ret').value,
+                    withdrawal: document.getElementById('f_withdrawal').value,
+                    address: document.getElementById('f_address').value,
+                    series: document.getElementById('f_series').value
+                });
+            } else {
+                // Salva dados de devolução
+                App.addOrUpdate({
+                    ...commonData,
+                    saleNote: document.getElementById('f_saleNote').value,
+                    returnNote: document.getElementById('f_returnNote').value,
+                    action: document.getElementById('f_action_dev').value,
+                    divergence: document.getElementById('f_divergence').value
+                });
+            }
         }
 
         function quickFilter(st) {
             document.getElementById('btnAdvFilter').classList.remove('active');
-            App.filters = { status: st === 'Todos' ? [] : [st], type: [], action: [], search: '', dateStart: null, dateEnd: null };
+            App.filters = { ...App.filters, status: st === 'Todos' ? [] : [st] };
             App.page = 1;
             App.render();
         }
@@ -1993,20 +1997,13 @@
             document.getElementById('configDrawer').classList.add('open');
         }
 
-        // Função para abrir o Modal de Observações
         function showObs(btn, text) {
             const m = document.getElementById('obsModal');
             const content = document.getElementById('obsContent');
-
-            // Injeta o texto (innerHTML permite usar <br> e formatação HTML se tiver)
             content.innerHTML = text;
-
-            // Exibe o modal centralizado
             m.style.display = 'flex';
             setTimeout(() => m.classList.add('active'), 10);
         }
-
-        // Função para fechar o Modal de Observações
         function closeObsModal() {
             const m = document.getElementById('obsModal');
             m.classList.remove('active');
@@ -2015,12 +2012,76 @@
 
         function openAdvFilter() {
             const m = document.getElementById('filterModal');
+            const container = document.getElementById('filterDynamicContent');
+
+            let html = '';
+            html += `
+            <div class="adv-filter-grid">
+                <div>
+                    <div class="filter-section-title">Status</div>
+                    <div class="checkbox-list">
+                        <label class="cb-item"><input type="checkbox" name="f_st" value="Pendente"> Pendente</label>
+                        <label class="cb-item"><input type="checkbox" name="f_st" value="Em andamento"> Em andamento</label>
+                        <label class="cb-item"><input type="checkbox" name="f_st" value="Finalizado"> Finalizado</label>
+                    </div>
+                </div>
+        `;
+
+            if (App.module === 'retornos') {
+                html += `
+                <div>
+                    <div class="filter-section-title">Tipo</div>
+                    <div class="checkbox-list">
+                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Locação"> Locação</label>
+                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Carcaça"> Carcaça</label>
+                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Alienação"> Alienação</label>
+                    </div>
+                </div>
+            </div>
+            <div class="adv-filter-grid">
+                <div>
+                    <div class="filter-section-title">Ação</div>
+                    <div class="checkbox-list">
+                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
+                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Validação"> Validação</label>
+                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Entrada"> Lançamento (Entrada)</label>
+                    </div>
+                </div>`;
+            } else {
+                // Filtros específicos de Devoluções
+                html += `
+                <div>
+                    <div class="filter-section-title">Ação</div>
+                    <div class="checkbox-list">
+                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
+                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Lançamento"> Lançamento</label>
+                    </div>
+                </div>
+            </div>
+            <div class="adv-filter-grid">
+                <div>
+                    <div class="filter-section-title">Divergência</div>
+                    <div class="checkbox-list">
+                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Sem divergência"> Sem divergência</label>
+                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Validar"> Validar</label>
+                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Divergente"> Divergente</label>
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+
             m.style.display = 'flex';
             setTimeout(() => m.classList.add('active'), 10);
 
+            // Preencher valores já selecionados
             document.querySelectorAll('input[name="f_st"]').forEach(c => c.checked = App.filters.status.includes(c.value));
             document.querySelectorAll('input[name="f_tp"]').forEach(c => c.checked = App.filters.type.includes(c.value));
             document.querySelectorAll('input[name="f_ac"]').forEach(c => c.checked = App.filters.action.includes(c.value));
+            if (App.module === 'devolucoes') {
+                document.querySelectorAll('input[name="f_dv"]').forEach(c => c.checked = App.filters.divergence.includes(c.value));
+            }
+
             document.getElementById('adv_dt_start').value = App.filters.dateStart || '';
             document.getElementById('adv_dt_end').value = App.filters.dateEnd || '';
         }
@@ -2035,14 +2096,15 @@
             const st = Array.from(document.querySelectorAll('input[name="f_st"]:checked')).map(c => c.value);
             const tp = Array.from(document.querySelectorAll('input[name="f_tp"]:checked')).map(c => c.value);
             const ac = Array.from(document.querySelectorAll('input[name="f_ac"]:checked')).map(c => c.value);
+            const dv = Array.from(document.querySelectorAll('input[name="f_dv"]:checked')).map(c => c.value);
             const ds = document.getElementById('adv_dt_start').value;
             const de = document.getElementById('adv_dt_end').value;
 
-            App.filters.status = st;
-            App.filters.type = tp;
-            App.filters.action = ac;
-            App.filters.dateStart = ds || null;
-            App.filters.dateEnd = de || null;
+            App.filters = {
+                ...App.filters,
+                status: st, type: tp, action: ac, divergence: dv,
+                dateStart: ds || null, dateEnd: de || null
+            };
 
             App.page = 1;
             App.render();
