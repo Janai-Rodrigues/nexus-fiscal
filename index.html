@@ -1040,6 +1040,71 @@
         .toast.error {
             border-left-color: var(--st-pending-txt);
         }
+
+        /* --- Menu de Status (Popover) --- */
+        .status-popover {
+            position: fixed;
+            /* Fica fixo na tela sobrepondo outros itens */
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 2000;
+            display: none;
+            /* Escondido por padrão */
+            flex-direction: column;
+            min-width: 150px;
+            padding: 6px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-opt {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            color: var(--text-main);
+        }
+
+        .status-opt:hover {
+            background: var(--bg-subtle);
+        }
+
+        .status-opt .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Cores específicas para as bolinhas do menu */
+        .opt-pendente .dot {
+            background-color: var(--st-pending-txt);
+        }
+
+        .opt-andamento .dot {
+            background-color: var(--st-active-txt);
+        }
+
+        .opt-finalizado .dot {
+            background-color: var(--st-done-txt);
+        }
     </style>
 </head>
 
@@ -1458,6 +1523,18 @@
 
     <div class="toast-container" id="toastArea"></div>
 
+    <div id="statusPopover" class="status-popover">
+        <div class="status-opt opt-pendente" onclick="App.confirmStatusChange('Pendente')">
+            <span class="dot"></span> Pendente
+        </div>
+        <div class="status-opt opt-andamento" onclick="App.confirmStatusChange('Em andamento')">
+            <span class="dot"></span> Em andamento
+        </div>
+        <div class="status-opt opt-finalizado" onclick="App.confirmStatusChange('Finalizado')">
+            <span class="dot"></span> Finalizado
+        </div>
+    </div>
+
     <script>
         // --- CONFIG FIREBASE ---
         const firebaseConfig = {
@@ -1543,6 +1620,9 @@
             editingId: null,
             currentUser: null,
 
+            // NOVO: Controle do Menu de Status
+            activeStatusId: null,
+
             init() {
                 auth.onAuthStateChanged((user) => {
                     document.getElementById('skeleton-loader').style.display = 'none';
@@ -1563,7 +1643,17 @@
                 document.documentElement.setAttribute('data-theme', localStorage.getItem('nexus_theme') || 'light');
 
                 document.addEventListener('click', e => {
-                    if (!e.target.closest('.obs-btn') && !e.target.closest('.popover')) document.getElementById('popover').style.display = 'none';
+                    // Fecha o modal de obs
+                    if (!e.target.closest('.obs-btn') && !e.target.closest('.popover')) {
+                        // Verifica se existe o elemento popover antigo antes de tentar fechar
+                        const pop = document.getElementById('popover');
+                        if (pop) pop.style.display = 'none';
+                    }
+
+                    // NOVO: Fecha o menu de status se clicar fora
+                    if (!e.target.closest('.status-popover')) {
+                        App.closeStatusMenu();
+                    }
                 });
             },
 
@@ -1578,7 +1668,6 @@
             },
 
             addOrUpdate(item) {
-                // Garante que o item seja salvo com o identificador do módulo atual
                 item.module = this.module;
 
                 const prom = this.editingId
@@ -1603,12 +1692,38 @@
                 };
             },
 
-            toggleStatus(id) {
-                const item = this.data.find(i => i.id === id);
-                if (!item) return;
-                const map = { 'Pendente': 'Em andamento', 'Em andamento': 'Finalizado', 'Finalizado': 'Pendente' };
-                db.collection('notes').doc(id).update({ status: map[item.status] });
+            // --- FUNÇÕES DO MENU DE STATUS (NOVO) ---
+            openStatusMenu(e, id) {
+                e.stopPropagation(); // Impede fechamento imediato
+                this.activeStatusId = id;
+
+                const menu = document.getElementById('statusPopover');
+                const rect = e.currentTarget.getBoundingClientRect();
+
+                // Posiciona logo abaixo do elemento clicado
+                menu.style.top = (rect.bottom + 5) + 'px';
+                // Tenta centralizar ou alinhar à esquerda
+                menu.style.left = rect.left + 'px';
+                menu.style.display = 'flex';
             },
+
+            confirmStatusChange(newStatus) {
+                if (this.activeStatusId) {
+                    db.collection('notes').doc(this.activeStatusId).update({ status: newStatus })
+                        .then(() => {
+                            this.showToast(`Status alterado para ${newStatus}`, 'success');
+                        })
+                        .catch(() => this.showToast('Erro ao atualizar status', 'error'));
+                }
+                this.closeStatusMenu();
+            },
+
+            closeStatusMenu() {
+                const menu = document.getElementById('statusPopover');
+                if (menu) menu.style.display = 'none';
+                this.activeStatusId = null;
+            },
+            // ----------------------------------------
 
             toggleSelect(id) {
                 if (this.selectedIds.has(id)) this.selectedIds.delete(id);
@@ -1628,7 +1743,6 @@
 
             getFilteredData() {
                 return this.data.filter(item => {
-                    // Filtra pelo módulo atual (se o item não tiver 'module', assume 'retornos' para compatibilidade)
                     const itemModule = item.module || 'retornos';
                     if (itemModule !== this.module) return false;
 
@@ -1637,7 +1751,6 @@
                         if (this.module === 'retornos') {
                             if (!item.title?.toLowerCase().includes(s) && !item.address?.toLowerCase().includes(s) && !item.series?.toLowerCase().includes(s)) return false;
                         } else {
-                            // Busca específica para Devoluções
                             if (!item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
                         }
                     }
@@ -1645,7 +1758,6 @@
                     if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
                     if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
                     if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
-                    // Filtro de divergência (específico de devoluções)
                     if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
 
                     if (this.filters.dateStart || this.filters.dateEnd) {
@@ -1658,7 +1770,7 @@
             },
 
             render() {
-                // 1. Configurar Cabeçalhos da Tabela Dinamicamente
+                // 1. Configurar Cabeçalhos
                 const thead = document.getElementById('dynamicHeader');
                 if (this.module === 'retornos') {
                     thead.innerHTML = `
@@ -1691,7 +1803,7 @@
                     </tr>`;
                 }
 
-                // 2. Calcular KPIs (baseado apenas no módulo atual)
+                // 2. Calcular KPIs
                 const moduleData = this.data.filter(d => (d.module || 'retornos') === this.module);
                 const counts = { Pendente: 0, 'Em andamento': 0, Finalizado: 0, Todos: 0 };
 
@@ -1730,7 +1842,6 @@
                 const checkAll = document.getElementById('checkAll');
                 if (checkAll) checkAll.checked = allSelected;
 
-                // Check de duplicidade (apenas para série em retornos)
                 const seriesCounts = {};
                 if (this.module === 'retornos') {
                     moduleData.forEach(d => {
@@ -1752,10 +1863,14 @@
                     if (isSel) tr.classList.add('selected');
 
                     const obsBtn = item.obs ? `<button class="btn-icon obs-btn" style="margin:0 auto" onclick="showObs(this, '${item.obs.replace(/'/g, "\\'").replace(/\n/g, "<br>")}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg></button>` : '';
+
                     const actions = `
                     <button class="btn-icon" onclick="openEdit('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
                     <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
-                `;
+                    `;
+
+                    // NOVO: Renderização do botão de status chama openStatusMenu
+                    const statusCell = `<span class="status-dot ${stClass}" onclick="App.openStatusMenu(event, '${item.id}')"><span class="dot"></span>${item.status}</span>`;
 
                     if (this.module === 'retornos') {
                         const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
@@ -1767,13 +1882,12 @@
                         <td>${item.action || '-'}</td>
                         <td title="${item.address}">${item.address || '-'}</td>
                         <td class="${isDup ? 'text-red' : ''}">${item.series || '-'}</td>
-                        <td><span class="status-dot ${stClass}" onclick="App.toggleStatus('${item.id}')"><span class="dot"></span>${item.status}</span></td>
+                        <td>${statusCell}</td>
                         <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
                         <td style="text-align:center">${obsBtn}</td>
                         <td class="action-cell">${actions}</td>
                     `;
                     } else {
-                        // Renderização específica para Devoluções
                         tr.innerHTML = `
                         <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
                         <td>${item.saleNote || '-'}</td>
@@ -1781,7 +1895,7 @@
                         <td>${item.date.split('-').reverse().join('/')}</td>
                         <td>${item.action || '-'}</td>
                         <td>${item.divergence || '-'}</td>
-                        <td><span class="status-dot ${stClass}" onclick="App.toggleStatus('${item.id}')"><span class="dot"></span>${item.status}</span></td>
+                        <td>${statusCell}</td>
                         <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
                         <td style="text-align:center">${obsBtn}</td>
                         <td class="action-cell">${actions}</td>
@@ -1812,7 +1926,25 @@
                 const area = document.getElementById('toastArea');
                 const el = document.createElement('div');
                 el.className = `toast ${type} show`;
-                el.innerHTML = type === 'success' ? '✅ ' + msg : '⚠️ ' + msg;
+
+                // Ícone de Sucesso (Check num círculo verde)
+                const successIcon = `
+                    <svg style="width:24px; height:24px; color:#22c55e; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>`;
+
+                // Ícone de Erro (Alerta num círculo vermelho)
+                const errorIcon = `
+                    <svg style="width:24px; height:24px; color:#ef4444; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>`;
+
+                // Escolhe o ícone baseado no tipo
+                const icon = type === 'success' ? successIcon : errorIcon;
+
+                // Monta o HTML final (adicionei um span para o texto ficar alinhado)
+                el.innerHTML = `${icon} <span style="font-weight:500">${msg}</span>`;
+
                 area.appendChild(el);
                 setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
             },
@@ -1856,7 +1988,6 @@
                         "Observações": item.obs || ""
                     }));
                 } else {
-                    // Exportação específica para Devoluções
                     dataForExcel = list.map(item => ({
                         "Nota Venda": item.saleNote,
                         "Nota Devolução": item.returnNote,
@@ -1884,10 +2015,7 @@
             document.getElementById('drawerTitle').innerText = 'Novo Registro';
             document.getElementById('noteForm').reset();
             document.getElementById('f_date').valueAsDate = new Date();
-
-            // Controla quais campos aparecem baseado no módulo
             toggleFormFields();
-
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('mainDrawer').classList.add('open');
         }
@@ -1912,7 +2040,6 @@
                 document.getElementById('f_address').value = item.address;
                 document.getElementById('f_series').value = item.series;
             } else {
-                // Preenche campos específicos de devolução
                 document.getElementById('f_saleNote').value = item.saleNote;
                 document.getElementById('f_returnNote').value = item.returnNote;
                 document.getElementById('f_action_dev').value = item.action;
@@ -1925,11 +2052,8 @@
 
         function toggleFormFields() {
             const isRet = App.module === 'retornos';
-            // Mostra/Esconde grupos de inputs
             document.querySelectorAll('.grp-retornos').forEach(el => el.classList.toggle('hidden', !isRet));
             document.querySelectorAll('.grp-devolucoes').forEach(el => el.classList.toggle('hidden', isRet));
-
-            // Altera label da data
             document.getElementById('lblDate').innerText = isRet ? 'Data Email' : 'Data Recebimento';
         }
 
@@ -1958,7 +2082,6 @@
                     series: document.getElementById('f_series').value
                 });
             } else {
-                // Salva dados de devolução
                 App.addOrUpdate({
                     ...commonData,
                     saleNote: document.getElementById('f_saleNote').value,
@@ -2049,7 +2172,6 @@
                     </div>
                 </div>`;
             } else {
-                // Filtros específicos de Devoluções
                 html += `
                 <div>
                     <div class="filter-section-title">Ação</div>
@@ -2075,7 +2197,6 @@
             m.style.display = 'flex';
             setTimeout(() => m.classList.add('active'), 10);
 
-            // Preencher valores já selecionados
             document.querySelectorAll('input[name="f_st"]').forEach(c => c.checked = App.filters.status.includes(c.value));
             document.querySelectorAll('input[name="f_tp"]').forEach(c => c.checked = App.filters.type.includes(c.value));
             document.querySelectorAll('input[name="f_ac"]').forEach(c => c.checked = App.filters.action.includes(c.value));
@@ -2123,4 +2244,3 @@
 </body>
 
 </html>
-
