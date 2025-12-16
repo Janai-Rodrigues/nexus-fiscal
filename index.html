@@ -1339,11 +1339,18 @@
                     <input type="text" id="f_title" class="inp">
                 </div>
 
-                <div class="grp-devolucoes hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                    <div class="form-group"><label>Nota de Venda</label><input type="text" id="f_saleNote" class="inp">
+                <div class="grp-devolucoes hidden">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="f_client" class="inp">
                     </div>
-                    <div class="form-group"><label>Nota de Devolução</label><input type="text" id="f_returnNote"
-                            class="inp"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="form-group"><label>Nota de Venda</label><input type="text" id="f_saleNote"
+                                class="inp">
+                        </div>
+                        <div class="form-group"><label>Nota de Devolução</label><input type="text" id="f_returnNote"
+                                class="inp"></div>
+                    </div>
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -1601,7 +1608,7 @@
             } else if (view === 'returns') {
                 App.module = 'devolucoes';
                 document.getElementById('pageHeaderTitle').innerText = 'Controle de Devoluções';
-                document.getElementById('searchInput').placeholder = "Buscar por nota venda, devolução...";
+                document.getElementById('searchInput').placeholder = "Buscar por cliente, nota venda, devolução...";
             }
             App.render();
         }
@@ -1620,7 +1627,7 @@
             editingId: null,
             currentUser: null,
 
-            // NOVO: Controle do Menu de Status
+            // Controle do Menu de Status
             activeStatusId: null,
 
             init() {
@@ -1645,12 +1652,11 @@
                 document.addEventListener('click', e => {
                     // Fecha o modal de obs
                     if (!e.target.closest('.obs-btn') && !e.target.closest('.popover')) {
-                        // Verifica se existe o elemento popover antigo antes de tentar fechar
                         const pop = document.getElementById('popover');
                         if (pop) pop.style.display = 'none';
                     }
 
-                    // NOVO: Fecha o menu de status se clicar fora
+                    // Fecha o menu de status se clicar fora
                     if (!e.target.closest('.status-popover')) {
                         App.closeStatusMenu();
                     }
@@ -1692,7 +1698,7 @@
                 };
             },
 
-            // --- FUNÇÕES DO MENU DE STATUS (NOVO) ---
+            // --- FUNÇÕES DO MENU DE STATUS ---
             openStatusMenu(e, id) {
                 e.stopPropagation(); // Impede fechamento imediato
                 this.activeStatusId = id;
@@ -1702,7 +1708,6 @@
 
                 // Posiciona logo abaixo do elemento clicado
                 menu.style.top = (rect.bottom + 5) + 'px';
-                // Tenta centralizar ou alinhar à esquerda
                 menu.style.left = rect.left + 'px';
                 menu.style.display = 'flex';
             },
@@ -1751,7 +1756,7 @@
                         if (this.module === 'retornos') {
                             if (!item.title?.toLowerCase().includes(s) && !item.address?.toLowerCase().includes(s) && !item.series?.toLowerCase().includes(s)) return false;
                         } else {
-                            if (!item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
+                            if (!item.client?.toLowerCase().includes(s) && !item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
                         }
                     }
 
@@ -1791,8 +1796,9 @@
                     thead.innerHTML = `
                     <tr>
                         <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
-                        <th style="width: 15%">Nota Venda</th>
-                        <th style="width: 15%">Nota Dev.</th>
+                        <th style="width: 20%">Cliente</th>
+                        <th style="width: 10%">Nota Venda</th>
+                        <th style="width: 10%">Nota Dev.</th>
                         <th style="width: 100px">Recebimento</th>
                         <th style="width: 120px">Ação</th>
                         <th style="width: 140px">Divergência</th>
@@ -1869,7 +1875,7 @@
                     <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
                     `;
 
-                    // NOVO: Renderização do botão de status chama openStatusMenu
+                    // Renderização do botão de status chama openStatusMenu
                     const statusCell = `<span class="status-dot ${stClass}" onclick="App.openStatusMenu(event, '${item.id}')"><span class="dot"></span>${item.status}</span>`;
 
                     if (this.module === 'retornos') {
@@ -1890,6 +1896,7 @@
                     } else {
                         tr.innerHTML = `
                         <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
+                        <td>${item.client || '-'}</td>
                         <td>${item.saleNote || '-'}</td>
                         <td>${item.returnNote || '-'}</td>
                         <td>${item.date.split('-').reverse().join('/')}</td>
@@ -1927,22 +1934,18 @@
                 const el = document.createElement('div');
                 el.className = `toast ${type} show`;
 
-                // Ícone de Sucesso (Check num círculo verde)
                 const successIcon = `
                     <svg style="width:24px; height:24px; color:#22c55e; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>`;
 
-                // Ícone de Erro (Alerta num círculo vermelho)
                 const errorIcon = `
                     <svg style="width:24px; height:24px; color:#ef4444; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                     </svg>`;
 
-                // Escolhe o ícone baseado no tipo
                 const icon = type === 'success' ? successIcon : errorIcon;
 
-                // Monta o HTML final (adicionei um span para o texto ficar alinhado)
                 el.innerHTML = `${icon} <span style="font-weight:500">${msg}</span>`;
 
                 area.appendChild(el);
@@ -1989,6 +1992,7 @@
                     }));
                 } else {
                     dataForExcel = list.map(item => ({
+                        "Cliente": item.client || "",
                         "Nota Venda": item.saleNote,
                         "Nota Devolução": item.returnNote,
                         "Data Recebimento": item.date.split('-').reverse().join('/'),
@@ -2040,6 +2044,7 @@
                 document.getElementById('f_address').value = item.address;
                 document.getElementById('f_series').value = item.series;
             } else {
+                document.getElementById('f_client').value = item.client || '';
                 document.getElementById('f_saleNote').value = item.saleNote;
                 document.getElementById('f_returnNote').value = item.returnNote;
                 document.getElementById('f_action_dev').value = item.action;
@@ -2084,6 +2089,7 @@
             } else {
                 App.addOrUpdate({
                     ...commonData,
+                    client: document.getElementById('f_client').value,
                     saleNote: document.getElementById('f_saleNote').value,
                     returnNote: document.getElementById('f_returnNote').value,
                     action: document.getElementById('f_action_dev').value,
@@ -2104,7 +2110,13 @@
             document.getElementById('clearSearchBtn').style.display = App.filters.search ? 'block' : 'none';
             App.page = 1; App.render();
         }
-        function clearSearch() { document.getElementById('searchInput').value = ''; handleSearch(); }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            input.focus();
+            handleSearch();
+        }
 
         function toggleTheme() {
             const n = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
