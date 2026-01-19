@@ -501,21 +501,31 @@
         .search-icon,
         .clear-icon {
             position: absolute;
-            top: 10px;
-            width: 18px;
-            height: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            z-index: 20;
+            transition: color 0.2s;
+        }
+
+        /* Apenas o ícone de limpar começa invisível */
+        .clear-icon {
+            display: none;
+            cursor: pointer;
+            background: transparent;
             color: var(--text-muted);
         }
 
+        /* A lupa deve ser sempre visível e ficar à esquerda */
         .search-icon {
+            display: block;
+            /* Garante que a lupa apareça */
             left: 12px;
+            right: auto;
+            /* Anula o right: 12px do bloco anterior */
             pointer-events: none;
-        }
-
-        .clear-icon {
-            right: 12px;
-            cursor: pointer;
-            display: none;
         }
 
         .btn-new,
@@ -530,6 +540,22 @@
             justify-content: center;
             gap: 8px;
             transition: filter 0.2s;
+        }
+
+        /* Classe para hover vermelho (Perigo/Limpar) */
+        .btn-hover-red:hover {
+            background-color: var(--st-pending-txt) !important;
+            /* Fundo Vermelho */
+            color: #ffffff !important;
+            /* Texto Branco */
+            border-color: var(--st-pending-txt) !important;
+            /* Borda Vermelha (Parece sem borda) */
+        }
+
+        /* Garante que o ícone SVG também fique branco */
+        .btn-hover-red:hover svg {
+            stroke: #ffffff !important;
+            color: #ffffff !important;
         }
 
         .btn-new {
@@ -961,7 +987,8 @@
             background: var(--bg-surface);
             border: 1px solid var(--border);
             width: 90%;
-            max-width: 500px;
+            max-width: 650px;
+            /* <--- MUDEI DE 450px PARA 650px */
             border-radius: 16px;
             box-shadow: var(--shadow-float);
             transform: scale(0.95);
@@ -969,6 +996,15 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* Duas colunas iguais */
+            gap: 16px;
+            /* Espaço entre as colunas */
+            margin-bottom: 12px;
         }
 
         .custom-modal-backdrop.active .custom-modal {
@@ -1104,6 +1140,58 @@
 
         .opt-finalizado .dot {
             background-color: var(--st-done-txt);
+        }
+
+        /* Estilo da Janela de Info (Detalhes) */
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        /* Destaque para o campo de Finalizado/Status */
+        .info-highlight {
+            background: var(--bg-subtle);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        /* Aumenta o espaço na direita para o texto não ficar embaixo do X */
+        .search-group input {
+            padding-right: 40px;
+        }
+
+
+        .clear-icon:hover {
+            color: var(--primary);
+            /* Feedback visual ao passar o mouse */
         }
     </style>
 </head>
@@ -1262,8 +1350,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
+
                         <input type="text" id="searchInput" placeholder="Buscar por email, endereço ou série..."
-                            onkeyup="handleSearch()">
+                            oninput="handleSearch()">
+
                         <svg class="clear-icon icon" id="clearSearchBtn" onclick="clearSearch()" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -1455,804 +1545,1004 @@
         </div>
     </div>
 
-    <div class="custom-modal-backdrop" id="filterModal">
+    <<div class="custom-modal-backdrop" id="filterModal">
         <div class="custom-modal">
             <div class="cm-header">
                 <span>Filtro Avançado</span>
-                <button onclick="closeFilterModal()"><svg class="icon" viewBox="0 0 24 24">
+                <button onclick="closeFilterModal()">
+                    <svg class="icon" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg></button>
+                    </svg>
+                </button>
             </div>
+
             <div class="cm-body">
                 <div id="filterDynamicContent"></div>
+
                 <div class="adv-filter-grid"
                     style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
                     <div>
                         <div class="filter-section-title">Período</div>
-                        <div class="form-group" style="margin-bottom:8px;"><input type="date" id="adv_dt_start"
-                                class="inp" style="padding:6px;"></div>
-                        <div class="form-group"><input type="date" id="adv_dt_end" class="inp" style="padding:6px;">
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <input type="date" id="adv_dt_start" class="inp" style="padding:6px;">
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="adv_dt_end" class="inp" style="padding:6px;">
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="cm-footer">
+                <button class="btn-tool btn-hover-red" onclick="clearFilterForm()"
+                    style="margin-right: auto; color: var(--st-pending-txt);">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:18px; height:18px; margin-right:4px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                    Limpar
+                </button>
+
                 <button class="btn-sec" onclick="closeFilterModal()">Cancelar</button>
                 <button class="btn-new" onclick="applyAdvFilter()">Aplicar Filtros</button>
             </div>
         </div>
-    </div>
-
-    <div class="custom-modal-backdrop" id="downloadModal">
-        <div class="custom-modal" style="max-width:400px;">
-            <div class="cm-header">Exportar Dados (Excel)</div>
-            <div class="cm-body" style="display:flex; flex-direction:column; gap:12px;">
-                <button class="btn-sec" onclick="App.downloadExcel('all')">Baixar Tudo (Filtrado)</button>
-                <button class="btn-sec" onclick="App.downloadExcel('page')">Baixar Página Atual</button>
-                <button class="btn-sec" onclick="App.downloadExcel('selected')">Baixar Selecionados</button>
-            </div>
-            <div class="cm-footer">
-                <button class="btn-sec" style="width:100%"
-                    onclick="document.getElementById('downloadModal').classList.remove('active'); setTimeout(()=>document.getElementById('downloadModal').style.display='none',200);">Fechar</button>
-            </div>
         </div>
-    </div>
 
-    <div class="custom-modal-backdrop" id="customModal">
-        <div class="custom-modal" style="max-width:350px; text-align:center;">
-            <div class="cm-body">
-                <h3 id="cmTitle" style="margin-bottom:8px;">Confirmar</h3>
-                <p id="cmDesc" style="color:var(--text-muted);">Mensagem</p>
-            </div>
-            <div class="cm-footer" style="justify-content:center;">
-                <button class="btn-sec" onclick="App.closeModal()">Cancelar</button>
-                <button class="btn-new" id="cmConfirmBtn" style="background:var(--st-pending-txt);">Confirmar</button>
+        <div class="custom-modal-backdrop" id="downloadModal">
+            <div class="custom-modal" style="max-width:400px;">
+                <div class="cm-header">Exportar Dados (Excel)</div>
+                <div class="cm-body" style="display:flex; flex-direction:column; gap:12px;">
+                    <button class="btn-sec" onclick="App.downloadExcel('all')">Baixar Tudo (Filtrado)</button>
+                    <button class="btn-sec" onclick="App.downloadExcel('page')">Baixar Página Atual</button>
+                    <button class="btn-sec" onclick="App.downloadExcel('selected')">Baixar Selecionados</button>
+                </div>
+                <div class="cm-footer">
+                    <button class="btn-sec" style="width:100%"
+                        onclick="document.getElementById('downloadModal').classList.remove('active'); setTimeout(()=>document.getElementById('downloadModal').style.display='none',200);">Fechar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="custom-modal-backdrop" id="obsModal">
-        <div class="custom-modal" style="width: 100%; max-width: 500px;">
-            <div class="cm-header"
-                style="background: #f9f1f1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px;">
-                <span
-                    style="font-weight: 800; color: #475569; font-size: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase;">OBSERVAÇÕES</span>
-                <button onclick="closeObsModal()" style="color: #64748b;"><svg class="icon"
-                        style="width: 20px; height: 20px;" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg></button>
-            </div>
-            <div class="cm-body" id="obsContent"
-                style="padding: 24px; font-size: 0.95rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
+        <div class="custom-modal-backdrop" id="customModal">
+            <div class="custom-modal" style="max-width:350px; text-align:center;">
+                <div class="cm-body">
+                    <h3 id="cmTitle" style="margin-bottom:8px;">Confirmar</h3>
+                    <p id="cmDesc" style="color:var(--text-muted);">Mensagem</p>
+                </div>
+                <div class="cm-footer" style="justify-content:center;">
+                    <button class="btn-sec" onclick="App.closeModal()">Cancelar</button>
+                    <button class="btn-new" id="cmConfirmBtn"
+                        style="background:var(--st-pending-txt);">Confirmar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="toast-container" id="toastArea"></div>
-
-    <div id="statusPopover" class="status-popover">
-        <div class="status-opt opt-pendente" onclick="App.confirmStatusChange('Pendente')">
-            <span class="dot"></span> Pendente
+        <div class="custom-modal-backdrop" id="infoModal">
+            <div class="custom-modal" style="width: 100%; max-width: 450px;">
+                <div class="cm-header">
+                    <span>Detalhes do Registro</span>
+                    <button onclick="closeInfoModal()"><svg class="icon" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg></button>
+                </div>
+                <div class="cm-body" id="infoContent" style="max-height: 70vh; overflow-y: auto;">
+                </div>
+                <div class="cm-footer">
+                    <button class="btn-sec" style="width:100%" onclick="closeInfoModal()">Fechar</button>
+                </div>
+            </div>
         </div>
-        <div class="status-opt opt-andamento" onclick="App.confirmStatusChange('Em andamento')">
-            <span class="dot"></span> Em andamento
+
+        <div class="toast-container" id="toastArea"></div>
+
+        <div id="statusPopover" class="status-popover">
+            <div class="status-opt opt-pendente" onclick="App.confirmStatusChange('Pendente')">
+                <span class="dot"></span> Pendente
+            </div>
+            <div class="status-opt opt-andamento" onclick="App.confirmStatusChange('Em andamento')">
+                <span class="dot"></span> Em andamento
+            </div>
+            <div class="status-opt opt-finalizado" onclick="App.confirmStatusChange('Finalizado')">
+                <span class="dot"></span> Finalizado
+            </div>
         </div>
-        <div class="status-opt opt-finalizado" onclick="App.confirmStatusChange('Finalizado')">
-            <span class="dot"></span> Finalizado
-        </div>
-    </div>
 
-    <script>
-        // --- CONFIG FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCUFCsdZMN2eWQRGI1IKajjVcaI7i2f84k",
-            authDomain: "notas-aa832.firebaseapp.com",
-            projectId: "notas-aa832",
-            storageBucket: "notas-aa832.firebasestorage.app",
-            messagingSenderId: "1040377213717",
-            appId: "1:1040377213717:web:8b5633a403ecf523be2f1c"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        <script>
+            // --- CONFIG FIREBASE ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyCUFCsdZMN2eWQRGI1IKajjVcaI7i2f84k",
+                authDomain: "notas-aa832.firebaseapp.com",
+                projectId: "notas-aa832",
+                storageBucket: "notas-aa832.firebasestorage.app",
+                messagingSenderId: "1040377213717",
+                appId: "1:1040377213717:web:8b5633a403ecf523be2f1c"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
 
-        // --- AUTH & SETUP ---
-        async function handleLogin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnLogin');
-            const err = document.getElementById('loginError');
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            const remember = document.getElementById('rememberMe').checked;
+            // --- AUTH & SETUP ---
+            async function handleLogin(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btnLogin');
+                const err = document.getElementById('loginError');
+                const email = document.getElementById('loginEmail').value;
+                const pass = document.getElementById('loginPass').value;
+                const remember = document.getElementById('rememberMe').checked;
 
-            btn.innerText = 'Entrando...'; btn.disabled = true; err.innerText = '';
-            const persistenceMode = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+                btn.innerText = 'Entrando...'; btn.disabled = true; err.innerText = '';
+                const persistenceMode = remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
 
-            auth.setPersistence(persistenceMode)
-                .then(() => auth.signInWithEmailAndPassword(email, pass))
-                .catch((error) => {
-                    console.error(error);
-                    err.innerText = 'Login falhou. Verifique suas credenciais.';
-                    btn.innerText = 'Entrar'; btn.disabled = false;
-                });
-        }
-
-        function togglePassVis() {
-            const inp = document.getElementById('loginPass');
-            const open = document.getElementById('eyeIconOpen');
-            const close = document.getElementById('eyeIconClose');
-            if (inp.type === 'password') {
-                inp.type = 'text'; open.classList.add('hidden'); close.classList.remove('hidden');
-            } else {
-                inp.type = 'password'; open.classList.remove('hidden'); close.classList.add('hidden');
-            }
-        }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
-
-        // --- NAVIGATION CONTROLLER ---
-        function navTo(view, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            if (el) el.classList.add('active');
-
-            // Reset
-            App.filters = { status: [], type: [], action: [], divergence: [], search: '', dateStart: null, dateEnd: null };
-            App.page = 1;
-            document.getElementById('searchInput').value = '';
-            document.getElementById('clearSearchBtn').style.display = 'none';
-
-            if (view === 'home') {
-                App.module = 'retornos';
-                document.getElementById('pageHeaderTitle').innerText = 'Controle de Retornos';
-                document.getElementById('searchInput').placeholder = "Buscar por email, endereço ou série...";
-            } else if (view === 'returns') {
-                App.module = 'devolucoes';
-                document.getElementById('pageHeaderTitle').innerText = 'Controle de Devoluções';
-                document.getElementById('searchInput').placeholder = "Buscar por cliente, nota venda, devolução...";
-            }
-            App.render();
-        }
-
-        // --- APP CORE ---
-        const App = {
-            data: [],
-            config: { delay: 6, perPage: 10 },
-            module: 'retornos', // 'retornos' ou 'devolucoes'
-            filters: {
-                status: [], type: [], action: [], divergence: [],
-                search: '', dateStart: null, dateEnd: null
-            },
-            selectedIds: new Set(),
-            page: 1,
-            editingId: null,
-            currentUser: null,
-
-            // Controle do Menu de Status
-            activeStatusId: null,
-
-            init() {
-                auth.onAuthStateChanged((user) => {
-                    document.getElementById('skeleton-loader').style.display = 'none';
-                    if (user) {
-                        this.currentUser = user;
-                        document.getElementById('login-screen').style.display = 'none';
-                        document.getElementById('app-content').classList.remove('hidden');
-                        document.getElementById('pEmail').innerText = user.email;
-                        this.loadData();
-                    } else {
-                        document.getElementById('login-screen').style.display = 'flex';
-                        document.getElementById('app-content').classList.add('hidden');
-                    }
-                });
-
-                const conf = localStorage.getItem('nexus_config');
-                if (conf) this.config = JSON.parse(conf);
-                document.documentElement.setAttribute('data-theme', localStorage.getItem('nexus_theme') || 'light');
-
-                document.addEventListener('click', e => {
-                    // Fecha o modal de obs
-                    if (!e.target.closest('.obs-btn') && !e.target.closest('.popover')) {
-                        const pop = document.getElementById('popover');
-                        if (pop) pop.style.display = 'none';
-                    }
-
-                    // Fecha o menu de status se clicar fora
-                    if (!e.target.closest('.status-popover')) {
-                        App.closeStatusMenu();
-                    }
-                });
-            },
-
-            loadData() {
-                db.collection('notes')
-                    .where('uid', '==', this.currentUser.uid)
-                    .onSnapshot(snap => {
-                        this.data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        this.data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                        this.render();
-                    }, err => console.error("Erro Firestore:", err));
-            },
-
-            addOrUpdate(item) {
-                item.module = this.module;
-
-                const prom = this.editingId
-                    ? db.collection('notes').doc(this.editingId).update(item)
-                    : db.collection('notes').add({ ...item, uid: this.currentUser.uid, createdAt: Date.now() });
-
-                prom.then(() => {
-                    this.showToast(this.editingId ? 'Atualizado!' : 'Criado!', 'success');
-                    closeAllDrawers();
-                }).catch(() => this.showToast('Erro ao salvar.', 'error'));
-            },
-
-            delete(id) {
-                document.getElementById('customModal').style.display = 'flex';
-                setTimeout(() => document.getElementById('customModal').classList.add('active'), 10);
-                document.getElementById('cmDesc').innerText = 'Deseja excluir permanentemente este registro?';
-                document.getElementById('cmConfirmBtn').onclick = () => {
-                    db.collection('notes').doc(id).delete();
-                    this.selectedIds.delete(id);
-                    this.closeModal();
-                    this.showToast('Registro excluído.', 'success');
-                };
-            },
-
-            // --- FUNÇÕES DO MENU DE STATUS ---
-            openStatusMenu(e, id) {
-                e.stopPropagation(); // Impede fechamento imediato
-                this.activeStatusId = id;
-
-                const menu = document.getElementById('statusPopover');
-                const rect = e.currentTarget.getBoundingClientRect();
-
-                // Posiciona logo abaixo do elemento clicado
-                menu.style.top = (rect.bottom + 5) + 'px';
-                menu.style.left = rect.left + 'px';
-                menu.style.display = 'flex';
-            },
-
-            confirmStatusChange(newStatus) {
-                if (this.activeStatusId) {
-                    db.collection('notes').doc(this.activeStatusId).update({ status: newStatus })
-                        .then(() => {
-                            this.showToast(`Status alterado para ${newStatus}`, 'success');
-                        })
-                        .catch(() => this.showToast('Erro ao atualizar status', 'error'));
-                }
-                this.closeStatusMenu();
-            },
-
-            closeStatusMenu() {
-                const menu = document.getElementById('statusPopover');
-                if (menu) menu.style.display = 'none';
-                this.activeStatusId = null;
-            },
-            // ----------------------------------------
-
-            toggleSelect(id) {
-                if (this.selectedIds.has(id)) this.selectedIds.delete(id);
-                else this.selectedIds.add(id);
-                this.render();
-            },
-
-            toggleAll(checked) {
-                const currentData = this.getFilteredData();
-                const pageData = currentData.slice((this.page - 1) * this.config.perPage, this.page * this.config.perPage);
-                pageData.forEach(d => {
-                    if (checked) this.selectedIds.add(d.id);
-                    else this.selectedIds.delete(d.id);
-                });
-                this.render();
-            },
-
-            getFilteredData() {
-                return this.data.filter(item => {
-                    const itemModule = item.module || 'retornos';
-                    if (itemModule !== this.module) return false;
-
-                    const s = this.filters.search.toLowerCase();
-                    if (s) {
-                        if (this.module === 'retornos') {
-                            if (!item.title?.toLowerCase().includes(s) && !item.address?.toLowerCase().includes(s) && !item.series?.toLowerCase().includes(s)) return false;
-                        } else {
-                            if (!item.client?.toLowerCase().includes(s) && !item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
-                        }
-                    }
-
-                    if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
-                    if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
-                    if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
-                    if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
-
-                    if (this.filters.dateStart || this.filters.dateEnd) {
-                        const d = item.date;
-                        if (this.filters.dateStart && d < this.filters.dateStart) return false;
-                        if (this.filters.dateEnd && d > this.filters.dateEnd) return false;
-                    }
-                    return true;
-                });
-            },
-
-            render() {
-                // 1. Configurar Cabeçalhos
-                const thead = document.getElementById('dynamicHeader');
-                if (this.module === 'retornos') {
-                    thead.innerHTML = `
-                    <tr>
-                        <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
-                        <th style="width: 20%">Título / EMAIL</th>
-                        <th style="width: 100px">Data</th>
-                        <th style="width: 100px">Tipo</th>
-                        <th style="width: 100px">Ação</th>
-                        <th style="width: 15%">Endereço</th>
-                        <th style="width: 150px">Série</th>
-                        <th style="width: 130px">Status</th>
-                        <th style="width: 90px">Dias</th>
-                        <th style="width: 60px; text-align: center;">Obs</th>
-                        <th style="width: 100px; text-align: right;"></th>
-                    </tr>`;
-                } else {
-                    thead.innerHTML = `
-                    <tr>
-                        <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
-                        <th style="width: 20%">Cliente</th>
-                        <th style="width: 10%">Nota Venda</th>
-                        <th style="width: 10%">Nota Dev.</th>
-                        <th style="width: 100px">Recebimento</th>
-                        <th style="width: 120px">Ação</th>
-                        <th style="width: 140px">Divergência</th>
-                        <th style="width: 130px">Status</th>
-                        <th style="width: 90px">Dias</th>
-                        <th style="width: 60px; text-align: center;">Obs</th>
-                        <th style="width: 100px; text-align: right;"></th>
-                    </tr>`;
-                }
-
-                // 2. Calcular KPIs
-                const moduleData = this.data.filter(d => (d.module || 'retornos') === this.module);
-                const counts = { Pendente: 0, 'Em andamento': 0, Finalizado: 0, Todos: 0 };
-
-                moduleData.forEach(d => {
-                    counts.Todos++;
-                    if (counts[d.status] !== undefined) counts[d.status]++;
-                });
-
-                ['Pendente', 'Em andamento', 'Finalizado', 'Todos'].forEach(k => {
-                    const idKey = k === 'Em andamento' ? 'andamento' : k.toLowerCase();
-                    document.getElementById(`kpi-${idKey}`).innerText = counts[k];
-                });
-
-                document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
-                if (this.filters.status.length === 1) {
-                    const s = this.filters.status[0];
-                    if (s === 'Pendente') document.querySelector('.sc-pendente').classList.add('active');
-                    if (s === 'Em andamento') document.querySelector('.sc-andamento').classList.add('active');
-                    if (s === 'Finalizado') document.querySelector('.sc-finalizado').classList.add('active');
-                } else if (this.filters.status.length === 0) {
-                    document.querySelector('.sc-todos').classList.add('active');
-                } else {
-                    document.getElementById('btnAdvFilter').classList.add('active');
-                }
-
-                // 3. Renderizar Linhas
-                const filtered = this.getFilteredData();
-                const start = (this.page - 1) * this.config.perPage;
-                const pageData = filtered.slice(start, start + this.config.perPage);
-
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = '';
-                document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'flex';
-
-                const allSelected = pageData.length > 0 && pageData.every(d => this.selectedIds.has(d.id));
-                const checkAll = document.getElementById('checkAll');
-                if (checkAll) checkAll.checked = allSelected;
-
-                const seriesCounts = {};
-                if (this.module === 'retornos') {
-                    moduleData.forEach(d => {
-                        const s = (d.series || '').trim().toLowerCase();
-                        if (s) seriesCounts[s] = (seriesCounts[s] || 0) + 1;
+                auth.setPersistence(persistenceMode)
+                    .then(() => auth.signInWithEmailAndPassword(email, pass))
+                    .catch((error) => {
+                        console.error(error);
+                        err.innerText = 'Login falhou. Verifique suas credenciais.';
+                        btn.innerText = 'Entrar'; btn.disabled = false;
                     });
+            }
+
+            function togglePassVis() {
+                const inp = document.getElementById('loginPass');
+                const open = document.getElementById('eyeIconOpen');
+                const close = document.getElementById('eyeIconClose');
+                if (inp.type === 'password') {
+                    inp.type = 'text'; open.classList.add('hidden'); close.classList.remove('hidden');
+                } else {
+                    inp.type = 'password'; open.classList.remove('hidden'); close.classList.add('hidden');
                 }
+            }
 
-                pageData.forEach(item => {
-                    const days = this.calcDays(item.date);
-                    const isLate = days > this.config.delay && item.status !== 'Finalizado';
-                    const isSel = this.selectedIds.has(item.id);
+            function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
 
-                    let stClass = 'st-pendente';
-                    if (item.status === 'Em andamento') stClass = 'st-andamento';
-                    if (item.status === 'Finalizado') stClass = 'st-finalizado';
+            // --- NAVIGATION CONTROLLER ---
+            function navTo(view, el) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                if (el) el.classList.add('active');
 
-                    const tr = document.createElement('tr');
-                    if (isSel) tr.classList.add('selected');
+                // Reset
+                App.filters = { status: [], type: [], action: [], divergence: [], withdrawal: [], search: '', dateStart: null, dateEnd: null };
+                App.page = 1;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('clearSearchBtn').style.display = 'none';
 
-                    const obsBtn = item.obs ? `<button class="btn-icon obs-btn" style="margin:0 auto" onclick="showObs(this, '${item.obs.replace(/'/g, "\\'").replace(/\n/g, "<br>")}')"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg></button>` : '';
+                if (view === 'home') {
+                    App.module = 'retornos';
+                    document.getElementById('pageHeaderTitle').innerText = 'Controle de Retornos';
+                    document.getElementById('searchInput').placeholder = "Buscar por email, endereço ou série...";
+                } else if (view === 'returns') {
+                    App.module = 'devolucoes';
+                    document.getElementById('pageHeaderTitle').innerText = 'Controle de Devoluções';
+                    document.getElementById('searchInput').placeholder = "Buscar por cliente, nota venda, devolução...";
+                }
+                App.render();
+            }
 
-                    const actions = `
-                    <button class="btn-icon" onclick="openEdit('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
-                    <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
-                    `;
+            // --- APP CORE ---
+            const App = {
+                data: [],
+                config: { delay: 6, perPage: 10 },
+                module: 'retornos', // 'retornos' ou 'devolucoes'
+                filters: {
+                    status: [],
+                    type: [],
+                    action: [],
+                    divergence: [],
+                    withdrawal: [], // <--- ADICIONE ISSO AQUI
+                    search: '',
+                    dateStart: null,
+                    dateEnd: null
+                },
+                selectedIds: new Set(),
+                page: 1,
+                editingId: null,
+                currentUser: null,
 
-                    // Renderização do botão de status chama openStatusMenu
-                    const statusCell = `<span class="status-dot ${stClass}" onclick="App.openStatusMenu(event, '${item.id}')"><span class="dot"></span>${item.status}</span>`;
+                // Controle do Menu de Status
+                activeStatusId: null,
 
-                    if (this.module === 'retornos') {
-                        const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
-                        tr.innerHTML = `
-                        <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
-                        <td>${item.title || '-'}</td>
-                        <td>${item.date.split('-').reverse().join('/')}</td>
-                        <td>${item.type || '-'}</td>
-                        <td>${item.action || '-'}</td>
-                        <td title="${item.address}">${item.address || '-'}</td>
-                        <td class="${isDup ? 'text-red' : ''}">${item.series || '-'}</td>
-                        <td>${statusCell}</td>
-                        <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
-                        <td style="text-align:center">${obsBtn}</td>
-                        <td class="action-cell">${actions}</td>
-                    `;
-                    } else {
-                        tr.innerHTML = `
-                        <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
-                        <td>${item.client || '-'}</td>
-                        <td>${item.saleNote || '-'}</td>
-                        <td>${item.returnNote || '-'}</td>
-                        <td>${item.date.split('-').reverse().join('/')}</td>
-                        <td>${item.action || '-'}</td>
-                        <td>${item.divergence || '-'}</td>
-                        <td>${statusCell}</td>
-                        <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
-                        <td style="text-align:center">${obsBtn}</td>
-                        <td class="action-cell">${actions}</td>
-                    `;
+                init() {
+                    auth.onAuthStateChanged((user) => {
+                        document.getElementById('skeleton-loader').style.display = 'none';
+                        if (user) {
+                            this.currentUser = user;
+                            document.getElementById('login-screen').style.display = 'none';
+                            document.getElementById('app-content').classList.remove('hidden');
+                            document.getElementById('pEmail').innerText = user.email;
+                            this.loadData();
+                        } else {
+                            document.getElementById('login-screen').style.display = 'flex';
+                            document.getElementById('app-content').classList.add('hidden');
+                        }
+                    });
+
+                    const conf = localStorage.getItem('nexus_config');
+                    if (conf) this.config = JSON.parse(conf);
+                    document.documentElement.setAttribute('data-theme', localStorage.getItem('nexus_theme') || 'light');
+
+                    document.addEventListener('click', e => {
+                        // Fecha o modal de obs
+                        if (!e.target.closest('.obs-btn') && !e.target.closest('.popover')) {
+                            const pop = document.getElementById('popover');
+                            if (pop) pop.style.display = 'none';
+                        }
+
+                        // Fecha o menu de status se clicar fora
+                        if (!e.target.closest('.status-popover')) {
+                            App.closeStatusMenu();
+                        }
+                    });
+                },
+
+                loadData() {
+                    db.collection('notes')
+                        .where('uid', '==', this.currentUser.uid)
+                        .onSnapshot(snap => {
+                            this.data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            this.data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                            this.render();
+                        }, err => console.error("Erro Firestore:", err));
+                },
+
+                addOrUpdate(item) {
+                    item.module = this.module;
+
+                    const prom = this.editingId
+                        ? db.collection('notes').doc(this.editingId).update(item)
+                        : db.collection('notes').add({ ...item, uid: this.currentUser.uid, createdAt: Date.now() });
+
+                    prom.then(() => {
+                        this.showToast(this.editingId ? 'Atualizado!' : 'Criado!', 'success');
+                        closeAllDrawers();
+                    }).catch(() => this.showToast('Erro ao salvar.', 'error'));
+                },
+
+                delete(id) {
+                    document.getElementById('customModal').style.display = 'flex';
+                    setTimeout(() => document.getElementById('customModal').classList.add('active'), 10);
+                    document.getElementById('cmDesc').innerText = 'Deseja excluir permanentemente este registro?';
+                    document.getElementById('cmConfirmBtn').onclick = () => {
+                        db.collection('notes').doc(id).delete();
+                        this.selectedIds.delete(id);
+                        this.closeModal();
+                        this.showToast('Registro excluído.', 'success');
+                    };
+                },
+
+                // --- FUNÇÕES DO MENU DE STATUS ---
+                openStatusMenu(e, id) {
+                    e.stopPropagation(); // Impede fechamento imediato
+                    this.activeStatusId = id;
+
+                    const menu = document.getElementById('statusPopover');
+                    const rect = e.currentTarget.getBoundingClientRect();
+
+                    // Posiciona logo abaixo do elemento clicado
+                    menu.style.top = (rect.bottom + 5) + 'px';
+                    menu.style.left = rect.left + 'px';
+                    menu.style.display = 'flex';
+                },
+
+                confirmStatusChange(newStatus) {
+                    if (this.activeStatusId) {
+                        db.collection('notes').doc(this.activeStatusId).update({ status: newStatus })
+                            .then(() => {
+                                this.showToast(`Status alterado para ${newStatus}`, 'success');
+                            })
+                            .catch(() => this.showToast('Erro ao atualizar status', 'error'));
                     }
-                    tbody.appendChild(tr);
-                });
+                    this.closeStatusMenu();
+                },
 
-                document.getElementById('pageInfo').innerText = filtered.length ? `${start + 1}-${Math.min(start + this.config.perPage, filtered.length)} de ${filtered.length}` : '0 de 0';
-                document.getElementById('btnPrev').disabled = this.page === 1;
-                document.getElementById('btnNext').disabled = (start + this.config.perPage) >= filtered.length;
-            },
+                closeStatusMenu() {
+                    const menu = document.getElementById('statusPopover');
+                    if (menu) menu.style.display = 'none';
+                    this.activeStatusId = null;
+                },
+                // ----------------------------------------
 
-            calcDays(dateStr) {
-                const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
-                const t = new Date(); t.setHours(0, 0, 0, 0);
-                const diff = Math.ceil((t - d) / (1000 * 60 * 60 * 24));
-                return d > t ? 0 : diff;
-            },
+                toggleSelect(id) {
+                    if (this.selectedIds.has(id)) this.selectedIds.delete(id);
+                    else this.selectedIds.add(id);
+                    this.render();
+                },
 
-            closeModal() {
-                const m = document.getElementById('customModal');
-                m.classList.remove('active');
-                setTimeout(() => m.style.display = 'none', 200);
-            },
+                toggleAll(checked) {
+                    const currentData = this.getFilteredData();
+                    const pageData = currentData.slice((this.page - 1) * this.config.perPage, this.page * this.config.perPage);
+                    pageData.forEach(d => {
+                        if (checked) this.selectedIds.add(d.id);
+                        else this.selectedIds.delete(d.id);
+                    });
+                    this.render();
+                },
 
-            showToast(msg, type) {
-                const area = document.getElementById('toastArea');
-                const el = document.createElement('div');
-                el.className = `toast ${type} show`;
+                getFilteredData() {
+                    return this.data.filter(item => {
+                        const itemModule = item.module || 'retornos';
+                        if (itemModule !== this.module) return false;
 
-                const successIcon = `
+                        const s = this.filters.search.toLowerCase();
+                        if (s) {
+                            if (this.module === 'retornos') {
+                                if (!item.title?.toLowerCase().includes(s) && !item.address?.toLowerCase().includes(s) && !item.series?.toLowerCase().includes(s)) return false;
+                            } else {
+                                if (!item.client?.toLowerCase().includes(s) && !item.saleNote?.toLowerCase().includes(s) && !item.returnNote?.toLowerCase().includes(s)) return false;
+                            }
+                        }
+
+                        if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
+                        if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
+                        if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
+                        if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
+                        if (this.filters.withdrawal && this.filters.withdrawal.length > 0) {
+                            // Se o item não tiver 'withdrawal' definido, consideramos falso se o filtro estiver ativo
+                            if (!item.withdrawal || !this.filters.withdrawal.includes(item.withdrawal)) return false;
+                        }
+                        if (this.filters.dateStart || this.filters.dateEnd) {
+                            const d = item.date;
+                            if (this.filters.dateStart && d < this.filters.dateStart) return false;
+                            if (this.filters.dateEnd && d > this.filters.dateEnd) return false;
+                        }
+                        return true;
+                    });
+                },
+
+                render() {
+                    // 1. Configurar Cabeçalhos
+                    const thead = document.getElementById('dynamicHeader');
+
+                    // Configura o HTML do cabeçalho baseado no módulo atual
+                    if (this.module === 'retornos') {
+                        thead.innerHTML = `
+        <tr>
+            <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
+            <th style="width: 20%">Título / EMAIL</th>
+            <th style="width: 100px">Data</th>
+            <th style="width: 100px">Tipo</th>
+            <th style="width: 100px">Ação</th>
+            <th style="width: 15%">Endereço</th>
+            <th style="width: 150px">Série</th>
+            <th style="width: 130px">Status</th>
+            <th style="width: 90px">Dias</th>
+            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 100px; text-align: right;"></th>
+        </tr>`;
+                    } else {
+                        thead.innerHTML = `
+        <tr>
+            <th style="width: 40px"><input type="checkbox" id="checkAll" onchange="App.toggleAll(this.checked)" class="row-check"></th>
+            <th style="width: 20%">Cliente</th>
+            <th style="width: 10%">Nota Venda</th>
+            <th style="width: 10%">Nota Dev.</th>
+            <th style="width: 100px">Recebimento</th>
+            <th style="width: 120px">Ação</th>
+            <th style="width: 140px">Divergência</th>
+            <th style="width: 130px">Status</th>
+            <th style="width: 90px">Dias</th>
+            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 100px; text-align: right;"></th>
+        </tr>`;
+                    }
+
+                    // 2. Calcular KPIs (Indicadores)
+                    const moduleData = this.data.filter(d => (d.module || 'retornos') === this.module);
+                    const counts = { Pendente: 0, 'Em andamento': 0, Finalizado: 0, Todos: 0 };
+
+                    moduleData.forEach(d => {
+                        counts.Todos++;
+                        if (counts[d.status] !== undefined) counts[d.status]++;
+                    });
+
+                    ['Pendente', 'Em andamento', 'Finalizado', 'Todos'].forEach(k => {
+                        const idKey = k === 'Em andamento' ? 'andamento' : k.toLowerCase();
+                        document.getElementById(`kpi-${idKey}`).innerText = counts[k];
+                    });
+
+                    // Atualiza visual dos cards de KPI
+                    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+                    if (this.filters.status.length === 1) {
+                        const s = this.filters.status[0];
+                        if (s === 'Pendente') document.querySelector('.sc-pendente').classList.add('active');
+                        if (s === 'Em andamento') document.querySelector('.sc-andamento').classList.add('active');
+                        if (s === 'Finalizado') document.querySelector('.sc-finalizado').classList.add('active');
+                    } else if (this.filters.status.length === 0) {
+                        document.querySelector('.sc-todos').classList.add('active');
+                    } else {
+                        document.getElementById('btnAdvFilter').classList.add('active');
+                    }
+
+                    // 3. Filtragem e Paginação
+                    const filtered = this.getFilteredData();
+                    const start = (this.page - 1) * this.config.perPage;
+                    const pageData = filtered.slice(start, start + this.config.perPage);
+
+                    // Limpa a tabela e verifica estado vazio
+                    const tbody = document.getElementById('tableBody');
+                    tbody.innerHTML = '';
+                    document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'flex';
+
+                    // Atualiza checkbox "Selecionar Todos"
+                    const allSelected = pageData.length > 0 && pageData.every(d => this.selectedIds.has(d.id));
+                    const checkAll = document.getElementById('checkAll');
+                    if (checkAll) checkAll.checked = allSelected;
+
+                    // Contagem para destacar Séries duplicadas (Apenas Retornos)
+                    const seriesCounts = {};
+                    if (this.module === 'retornos') {
+                        moduleData.forEach(d => {
+                            const s = (d.series || '').trim().toLowerCase();
+                            if (s) seriesCounts[s] = (seriesCounts[s] || 0) + 1;
+                        });
+                    }
+
+                    // 4. Renderizar Linhas
+                    pageData.forEach(item => {
+                        const days = this.calcDays(item.date);
+                        const isLate = days > this.config.delay && item.status !== 'Finalizado';
+                        const isSel = this.selectedIds.has(item.id);
+
+                        let stClass = 'st-pendente';
+                        if (item.status === 'Em andamento') stClass = 'st-andamento';
+                        if (item.status === 'Finalizado') stClass = 'st-finalizado';
+
+                        const tr = document.createElement('tr');
+                        if (isSel) tr.classList.add('selected');
+
+                        // --- NOVO BOTÃO DE INFO (Ícone de bolinha com !) ---
+                        // Ele chama App.openInfoModal passando o ID do item
+                        const infoBtn = `
+        <button class="btn-icon" style="margin:0 auto; color: var(--primary);" onclick="App.openInfoModal('${item.id}')" title="Ver Detalhes">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+        </button>`;
+
+                        // Botões de Ação (Editar / Excluir)
+                        const actions = `
+        <button class="btn-icon" onclick="openEdit('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
+        <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
+        `;
+
+                        // Coluna de Status (com bolinha colorida)
+                        const statusCell = `<span class="status-dot ${stClass}" onclick="App.openStatusMenu(event, '${item.id}')"><span class="dot"></span>${item.status}</span>`;
+
+                        // Montagem da Linha HTML
+                        if (this.module === 'retornos') {
+                            const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
+                            tr.innerHTML = `
+            <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
+            <td>${item.title || '-'}</td>
+            <td>${item.date.split('-').reverse().join('/')}</td>
+            <td>${item.type || '-'}</td>
+            <td>${item.action || '-'}</td>
+            <td title="${item.address}">${item.address || '-'}</td>
+            <td class="${isDup ? 'text-red' : ''}">${item.series || '-'}</td>
+            <td>${statusCell}</td>
+            <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
+            <td style="text-align:center">${infoBtn}</td>
+            <td class="action-cell">${actions}</td>
+        `;
+                        } else {
+                            tr.innerHTML = `
+            <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
+            <td>${item.client || '-'}</td>
+            <td>${item.saleNote || '-'}</td>
+            <td>${item.returnNote || '-'}</td>
+            <td>${item.date.split('-').reverse().join('/')}</td>
+            <td>${item.action || '-'}</td>
+            <td>${item.divergence || '-'}</td>
+            <td>${statusCell}</td>
+            <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
+            <td style="text-align:center">${infoBtn}</td>
+            <td class="action-cell">${actions}</td>
+        `;
+                        }
+                        tbody.appendChild(tr);
+                    });
+
+                    // 5. Atualiza informações do rodapé (paginação)
+                    document.getElementById('pageInfo').innerText = filtered.length ? `${start + 1}-${Math.min(start + this.config.perPage, filtered.length)} de ${filtered.length}` : '0 de 0';
+                    document.getElementById('btnPrev').disabled = this.page === 1;
+                    document.getElementById('btnNext').disabled = (start + this.config.perPage) >= filtered.length;
+                },
+
+                calcDays(dateStr) {
+                    const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+                    const t = new Date(); t.setHours(0, 0, 0, 0);
+                    const diff = Math.ceil((t - d) / (1000 * 60 * 60 * 24));
+                    return d > t ? 0 : diff;
+                },
+
+                closeModal() {
+                    const m = document.getElementById('customModal');
+                    m.classList.remove('active');
+                    setTimeout(() => m.style.display = 'none', 200);
+                },
+
+                showToast(msg, type) {
+                    const area = document.getElementById('toastArea');
+                    const el = document.createElement('div');
+                    el.className = `toast ${type} show`;
+
+                    const successIcon = `
                     <svg style="width:24px; height:24px; color:#22c55e; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>`;
 
-                const errorIcon = `
+                    const errorIcon = `
                     <svg style="width:24px; height:24px; color:#ef4444; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                     </svg>`;
 
-                const icon = type === 'success' ? successIcon : errorIcon;
+                    const icon = type === 'success' ? successIcon : errorIcon;
 
-                el.innerHTML = `${icon} <span style="font-weight:500">${msg}</span>`;
+                    el.innerHTML = `${icon} <span style="font-weight:500">${msg}</span>`;
 
-                area.appendChild(el);
-                setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
-            },
+                    area.appendChild(el);
+                    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
+                },
 
-            logout() { auth.signOut(); closeAllDrawers(); },
+                logout() { auth.signOut(); closeAllDrawers(); },
 
-            saveConfig() {
-                this.config.delay = parseInt(document.getElementById('cfg_delay').value) || 6;
-                this.config.perPage = parseInt(document.getElementById('cfg_perPage').value) || 10;
-                localStorage.setItem('nexus_config', JSON.stringify(this.config));
-                this.showToast('Configurações Salvas', 'success');
-                this.page = 1; this.render(); closeAllDrawers();
-            },
+                saveConfig() {
+                    this.config.delay = parseInt(document.getElementById('cfg_delay').value) || 6;
+                    this.config.perPage = parseInt(document.getElementById('cfg_perPage').value) || 10;
+                    localStorage.setItem('nexus_config', JSON.stringify(this.config));
+                    this.showToast('Configurações Salvas', 'success');
+                    this.page = 1; this.render(); closeAllDrawers();
+                },
 
-            downloadExcel(mode) {
-                let list = [];
-                const allFiltered = this.getFilteredData();
+                downloadExcel(mode) {
+                    let list = [];
+                    const allFiltered = this.getFilteredData();
 
-                if (mode === 'all') {
-                    list = allFiltered;
-                } else if (mode === 'page') {
-                    const start = (this.page - 1) * this.config.perPage;
-                    list = allFiltered.slice(start, start + this.config.perPage);
-                } else if (mode === 'selected') {
-                    list = this.data.filter(i => this.selectedIds.has(i.id));
-                    if (list.length === 0) { this.showToast("Nenhum item selecionado.", "error"); return; }
-                }
+                    if (mode === 'all') {
+                        list = allFiltered;
+                    } else if (mode === 'page') {
+                        const start = (this.page - 1) * this.config.perPage;
+                        list = allFiltered.slice(start, start + this.config.perPage);
+                    } else if (mode === 'selected') {
+                        list = this.data.filter(i => this.selectedIds.has(i.id));
+                        if (list.length === 0) { this.showToast("Nenhum item selecionado.", "error"); return; }
+                    }
 
-                let dataForExcel = [];
+                    let dataForExcel = [];
 
-                if (this.module === 'retornos') {
-                    dataForExcel = list.map(item => ({
-                        "Título / Identificação": item.title,
-                        "Data": item.date.split('-').reverse().join('/'),
-                        "Tipo": item.type,
-                        "Ação": item.action,
-                        "Local": item.withdrawal,
-                        "Endereço": item.address,
-                        "Série": item.series,
-                        "Status": item.status,
-                        "Observações": item.obs || ""
-                    }));
+                    if (this.module === 'retornos') {
+                        dataForExcel = list.map(item => ({
+                            "Título / Identificação": item.title,
+                            "Data": item.date.split('-').reverse().join('/'),
+                            "Tipo": item.type,
+                            "Ação": item.action,
+                            "Local": item.withdrawal,
+                            "Endereço": item.address,
+                            "Série": item.series,
+                            "Status": item.status,
+                            "Observações": item.obs || ""
+                        }));
+                    } else {
+                        dataForExcel = list.map(item => ({
+                            "Cliente": item.client || "",
+                            "Nota Venda": item.saleNote,
+                            "Nota Devolução": item.returnNote,
+                            "Data Recebimento": item.date.split('-').reverse().join('/'),
+                            "Ação": item.action,
+                            "Divergência": item.divergence,
+                            "Status": item.status,
+                            "Observações": item.obs || ""
+                        }));
+                    }
+
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(dataForExcel);
+                    XLSX.utils.book_append_sheet(wb, ws, this.module === 'retornos' ? "Retornos" : "Devoluções");
+                    XLSX.writeFile(wb, `Nexus_${this.module}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+                    document.getElementById('downloadModal').classList.remove('active');
+                    setTimeout(() => document.getElementById('downloadModal').style.display = 'none', 200);
+                },
+
+                openInfoModal(id) {
+                    const item = this.data.find(i => i.id === id);
+                    if (!item) return;
+
+                    const m = document.getElementById('infoModal');
+                    const content = document.getElementById('infoContent');
+
+                    // Função auxiliar para criar o HTML de cada item
+                    const row = (label, val) => `
+        <div class="info-item">
+            <span class="info-label">${label}</span>
+            <span class="info-value">${val || '-'}</span>
+        </div>`;
+
+                    let html = '<div class="info-list">';
+
+                    if (this.module === 'retornos') {
+                        // 1. Título sozinho lá em cima
+                        html += row('Título / Identificação', item.title);
+
+                        // 2. Grid para os itens lado a lado
+                        html += `<div class="info-grid">`;
+
+                        // Linha 1 do Grid
+                        html += row('Email / Data', item.date.split('-').reverse().join('/'));
+                        html += row('Tipo', item.type);
+
+                        // Linha 2 do Grid
+                        html += row('Ação Documental', item.action);
+                        html += row('Local', item.withdrawal);
+
+                        // Linha 3 do Grid
+                        html += row('Endereço', item.address);
+                        html += row('Série', item.series);
+
+                        html += `</div>`; // Fecha o Grid
+
+                    } else {
+                        // Layout para Devoluções (mantive padrão, mas organizado)
+                        html += row('Cliente', item.client);
+                        html += `<div class="info-grid">`;
+                        html += row('Data Recebimento', item.date.split('-').reverse().join('/'));
+                        html += row('Ação', item.action);
+                        html += row('Nota de Venda', item.saleNote);
+                        html += row('Nota de Devolução', item.returnNote);
+                        html += `</div>`;
+                        html += row('Divergência', item.divergence);
+                    }
+
+                    // --- Status / Finalizado (Igual ao anterior) ---
+                    let statusHtml = '';
+                    if (item.status === 'Finalizado') {
+                        const dateFin = item.finishedAt ? new Date(item.finishedAt).toLocaleDateString('pt-BR') + ' às ' + new Date(item.finishedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Data não registrada';
+
+                        statusHtml = `
+        <div class="info-item info-highlight" style="border-left: 4px solid var(--st-done-txt);">
+            <span class="info-label" style="color:var(--st-done-txt)">Finalizado em</span>
+            <span class="info-value">${dateFin}</span>
+        </div>`;
+                    } else {
+                        let color = item.status === 'Pendente' ? 'var(--st-pending-txt)' : 'var(--st-active-txt)';
+                        statusHtml = `
+        <div class="info-item info-highlight" style="border-left: 4px solid ${color};">
+            <span class="info-label" style="color:${color}">Status Atual</span>
+            <span class="info-value">${item.status}</span>
+        </div>`;
+                    }
+                    html += statusHtml;
+
+                    // --- Observações (Último campo) ---
+                    html += `
+        <div class="info-item" style="margin-top:12px; border:none;">
+            <span class="info-label">Observações</span>
+            <span class="info-value" style="white-space: pre-wrap; font-weight:400; background:var(--bg-body); padding:10px; border-radius:6px; display:block;">${item.obs || 'Nenhuma observação.'}</span>
+        </div>`;
+
+                    html += '</div>';
+
+                    content.innerHTML = html;
+                    m.style.display = 'flex';
+                    setTimeout(() => m.classList.add('active'), 10);
+                },
+            };
+
+
+
+            // --- GLOBAL UI HANDLERS ---
+            function openDrawer() {
+                App.editingId = null;
+                document.getElementById('drawerTitle').innerText = 'Novo Registro';
+                document.getElementById('noteForm').reset();
+                document.getElementById('f_date').valueAsDate = new Date();
+                toggleFormFields();
+                document.getElementById('drawerOverlay').classList.add('open');
+                document.getElementById('mainDrawer').classList.add('open');
+            }
+
+            function openEdit(id) {
+                const item = App.data.find(i => i.id === id);
+                if (!item) return;
+                App.editingId = id;
+                document.getElementById('drawerTitle').innerText = 'Editar Registro';
+
+                toggleFormFields();
+
+                document.getElementById('f_date').value = item.date;
+                document.getElementById('f_status').value = item.status;
+                document.getElementById('f_obs').value = item.obs || '';
+
+                if (App.module === 'retornos') {
+                    document.getElementById('f_title').value = item.title;
+                    document.getElementById('f_type').value = item.type;
+                    document.getElementById('f_action_ret').value = item.action;
+                    document.getElementById('f_withdrawal').value = item.withdrawal;
+                    document.getElementById('f_address').value = item.address;
+                    document.getElementById('f_series').value = item.series;
                 } else {
-                    dataForExcel = list.map(item => ({
-                        "Cliente": item.client || "",
-                        "Nota Venda": item.saleNote,
-                        "Nota Devolução": item.returnNote,
-                        "Data Recebimento": item.date.split('-').reverse().join('/'),
-                        "Ação": item.action,
-                        "Divergência": item.divergence,
-                        "Status": item.status,
-                        "Observações": item.obs || ""
-                    }));
+                    document.getElementById('f_client').value = item.client || '';
+                    document.getElementById('f_saleNote').value = item.saleNote;
+                    document.getElementById('f_returnNote').value = item.returnNote;
+                    document.getElementById('f_action_dev').value = item.action;
+                    document.getElementById('f_divergence').value = item.divergence;
                 }
 
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(dataForExcel);
-                XLSX.utils.book_append_sheet(wb, ws, this.module === 'retornos' ? "Retornos" : "Devoluções");
-                XLSX.writeFile(wb, `Nexus_${this.module}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-
-                document.getElementById('downloadModal').classList.remove('active');
-                setTimeout(() => document.getElementById('downloadModal').style.display = 'none', 200);
-            }
-        };
-
-        // --- GLOBAL UI HANDLERS ---
-        function openDrawer() {
-            App.editingId = null;
-            document.getElementById('drawerTitle').innerText = 'Novo Registro';
-            document.getElementById('noteForm').reset();
-            document.getElementById('f_date').valueAsDate = new Date();
-            toggleFormFields();
-            document.getElementById('drawerOverlay').classList.add('open');
-            document.getElementById('mainDrawer').classList.add('open');
-        }
-
-        function openEdit(id) {
-            const item = App.data.find(i => i.id === id);
-            if (!item) return;
-            App.editingId = id;
-            document.getElementById('drawerTitle').innerText = 'Editar Registro';
-
-            toggleFormFields();
-
-            document.getElementById('f_date').value = item.date;
-            document.getElementById('f_status').value = item.status;
-            document.getElementById('f_obs').value = item.obs || '';
-
-            if (App.module === 'retornos') {
-                document.getElementById('f_title').value = item.title;
-                document.getElementById('f_type').value = item.type;
-                document.getElementById('f_action_ret').value = item.action;
-                document.getElementById('f_withdrawal').value = item.withdrawal;
-                document.getElementById('f_address').value = item.address;
-                document.getElementById('f_series').value = item.series;
-            } else {
-                document.getElementById('f_client').value = item.client || '';
-                document.getElementById('f_saleNote').value = item.saleNote;
-                document.getElementById('f_returnNote').value = item.returnNote;
-                document.getElementById('f_action_dev').value = item.action;
-                document.getElementById('f_divergence').value = item.divergence;
+                document.getElementById('drawerOverlay').classList.add('open');
+                document.getElementById('mainDrawer').classList.add('open');
             }
 
-            document.getElementById('drawerOverlay').classList.add('open');
-            document.getElementById('mainDrawer').classList.add('open');
-        }
-
-        function toggleFormFields() {
-            const isRet = App.module === 'retornos';
-            document.querySelectorAll('.grp-retornos').forEach(el => el.classList.toggle('hidden', !isRet));
-            document.querySelectorAll('.grp-devolucoes').forEach(el => el.classList.toggle('hidden', isRet));
-            document.getElementById('lblDate').innerText = isRet ? 'Data Email' : 'Data Recebimento';
-        }
-
-        function closeAllDrawers() {
-            document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
-            document.getElementById('drawerOverlay').classList.remove('open');
-            App.closeModal();
-        }
-
-        function handleSubmit(e) {
-            e.preventDefault();
-            const commonData = {
-                date: document.getElementById('f_date').value,
-                status: document.getElementById('f_status').value,
-                obs: document.getElementById('f_obs').value
-            };
-
-            if (App.module === 'retornos') {
-                App.addOrUpdate({
-                    ...commonData,
-                    title: document.getElementById('f_title').value,
-                    type: document.getElementById('f_type').value,
-                    action: document.getElementById('f_action_ret').value,
-                    withdrawal: document.getElementById('f_withdrawal').value,
-                    address: document.getElementById('f_address').value,
-                    series: document.getElementById('f_series').value
-                });
-            } else {
-                App.addOrUpdate({
-                    ...commonData,
-                    client: document.getElementById('f_client').value,
-                    saleNote: document.getElementById('f_saleNote').value,
-                    returnNote: document.getElementById('f_returnNote').value,
-                    action: document.getElementById('f_action_dev').value,
-                    divergence: document.getElementById('f_divergence').value
-                });
+            function toggleFormFields() {
+                const isRet = App.module === 'retornos';
+                document.querySelectorAll('.grp-retornos').forEach(el => el.classList.toggle('hidden', !isRet));
+                document.querySelectorAll('.grp-devolucoes').forEach(el => el.classList.toggle('hidden', isRet));
+                document.getElementById('lblDate').innerText = isRet ? 'Data Email' : 'Data Recebimento';
             }
-        }
 
-        function quickFilter(st) {
-            document.getElementById('btnAdvFilter').classList.remove('active');
-            App.filters = { ...App.filters, status: st === 'Todos' ? [] : [st] };
-            App.page = 1;
-            App.render();
-        }
+            function closeAllDrawers() {
+                document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+                document.getElementById('drawerOverlay').classList.remove('open');
+                App.closeModal();
+            }
 
-        function handleSearch() {
-            App.filters.search = document.getElementById('searchInput').value;
-            document.getElementById('clearSearchBtn').style.display = App.filters.search ? 'block' : 'none';
-            App.page = 1; App.render();
-        }
+            function handleSubmit(e) {
+                e.preventDefault();
+                const commonData = {
+                    date: document.getElementById('f_date').value,
+                    status: document.getElementById('f_status').value,
+                    obs: document.getElementById('f_obs').value
+                };
 
-        function clearSearch() {
-            const input = document.getElementById('searchInput');
-            input.value = '';
-            input.focus();
-            handleSearch();
-        }
+                if (App.module === 'retornos') {
+                    App.addOrUpdate({
+                        ...commonData,
+                        title: document.getElementById('f_title').value,
+                        type: document.getElementById('f_type').value,
+                        action: document.getElementById('f_action_ret').value,
+                        withdrawal: document.getElementById('f_withdrawal').value,
+                        address: document.getElementById('f_address').value,
+                        series: document.getElementById('f_series').value
+                    });
+                } else {
+                    App.addOrUpdate({
+                        ...commonData,
+                        client: document.getElementById('f_client').value,
+                        saleNote: document.getElementById('f_saleNote').value,
+                        returnNote: document.getElementById('f_returnNote').value,
+                        action: document.getElementById('f_action_dev').value,
+                        divergence: document.getElementById('f_divergence').value
+                    });
+                }
+            }
 
-        function toggleTheme() {
-            const n = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', n);
-            localStorage.setItem('nexus_theme', n);
-        }
+            function quickFilter(st) {
+                document.getElementById('btnAdvFilter').classList.remove('active');
+                App.filters = { ...App.filters, status: st === 'Todos' ? [] : [st] };
+                App.page = 1;
+                App.render();
+            }
 
-        function changePage(d) { App.page += d; App.render(); }
+            function handleSearch() {
+                // 1. Pega os elementos
+                const input = document.getElementById('searchInput');
+                const clearBtn = document.getElementById('clearSearchBtn');
+                const val = input.value;
 
-        function openConfig() {
-            document.getElementById('cfg_delay').value = App.config.delay;
-            document.getElementById('cfg_perPage').value = App.config.perPage;
-            document.getElementById('drawerOverlay').classList.add('open');
-            document.getElementById('configDrawer').classList.add('open');
-        }
+                // 2. Lógica VISUAL (Executa mesmo se o App/Firebase der erro)
+                if (clearBtn) {
+                    // Se tem texto, mostra o X (block). Se não, esconde (none).
+                    clearBtn.style.display = val.length > 0 ? 'block' : 'none';
+                }
 
-        function showObs(btn, text) {
-            const m = document.getElementById('obsModal');
-            const content = document.getElementById('obsContent');
-            content.innerHTML = text;
-            m.style.display = 'flex';
-            setTimeout(() => m.classList.add('active'), 10);
-        }
-        function closeObsModal() {
-            const m = document.getElementById('obsModal');
-            m.classList.remove('active');
-            setTimeout(() => m.style.display = 'none', 200);
-        }
+                // 3. Lógica do SISTEMA (Filtro da tabela)
+                // Verifica se o 'App' foi carregado corretamente antes de tentar filtrar
+                if (typeof App !== 'undefined' && App.filters) {
+                    App.filters.search = val;
+                    App.page = 1;
+                    App.render();
+                }
+            }
 
-        function openAdvFilter() {
-            const m = document.getElementById('filterModal');
-            const container = document.getElementById('filterDynamicContent');
+            function clearSearch() {
+                const input = document.getElementById('searchInput');
+                input.value = '';
+                input.focus();
+                handleSearch(); // Chama a busca novamente para limpar o filtro e esconder o botão
+            }
 
-            let html = '';
-            html += `
-            <div class="adv-filter-grid">
-                <div>
-                    <div class="filter-section-title">Status</div>
-                    <div class="checkbox-list">
-                        <label class="cb-item"><input type="checkbox" name="f_st" value="Pendente"> Pendente</label>
-                        <label class="cb-item"><input type="checkbox" name="f_st" value="Em andamento"> Em andamento</label>
-                        <label class="cb-item"><input type="checkbox" name="f_st" value="Finalizado"> Finalizado</label>
-                    </div>
-                </div>
-        `;
+            function toggleTheme() {
+                const n = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', n);
+                localStorage.setItem('nexus_theme', n);
+            }
 
-            if (App.module === 'retornos') {
+            function changePage(d) { App.page += d; App.render(); }
+
+            function openConfig() {
+                document.getElementById('cfg_delay').value = App.config.delay;
+                document.getElementById('cfg_perPage').value = App.config.perPage;
+                document.getElementById('drawerOverlay').classList.add('open');
+                document.getElementById('configDrawer').classList.add('open');
+            }
+
+            function showObs(btn, text) {
+                const m = document.getElementById('obsModal');
+                const content = document.getElementById('obsContent');
+                content.innerHTML = text;
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('active'), 10);
+            }
+            function closeObsModal() {
+                const m = document.getElementById('obsModal');
+                m.classList.remove('active');
+                setTimeout(() => m.style.display = 'none', 200);
+            }
+
+            function openAdvFilter() {
+                const m = document.getElementById('filterModal');
+                const container = document.getElementById('filterDynamicContent');
+
+                let html = '';
+
+                // --- 1. Bloco Comum (Status) ---
                 html += `
-                <div>
-                    <div class="filter-section-title">Tipo</div>
-                    <div class="checkbox-list">
-                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Locação"> Locação</label>
-                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Carcaça"> Carcaça</label>
-                        <label class="cb-item"><input type="checkbox" name="f_tp" value="Alienação"> Alienação</label>
-                    </div>
-                </div>
+    <div class="adv-filter-grid">
+        <div>
+            <div class="filter-section-title">Status</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_st" value="Pendente"> Pendente</label>
+                <label class="cb-item"><input type="checkbox" name="f_st" value="Em andamento"> Em andamento</label>
+                <label class="cb-item"><input type="checkbox" name="f_st" value="Finalizado"> Finalizado</label>
             </div>
-            <div class="adv-filter-grid">
-                <div>
-                    <div class="filter-section-title">Ação</div>
-                    <div class="checkbox-list">
-                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
-                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Validação"> Validação</label>
-                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Entrada"> Lançamento (Entrada)</label>
-                    </div>
-                </div>`;
-            } else {
-                html += `
-                <div>
-                    <div class="filter-section-title">Ação</div>
-                    <div class="checkbox-list">
-                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
-                        <label class="cb-item"><input type="checkbox" name="f_ac" value="Lançamento"> Lançamento</label>
-                    </div>
-                </div>
+        </div>
+    `;
+
+                // --- 2. Blocos Específicos por Módulo ---
+                if (App.module === 'retornos') {
+                    html += `
+        <div>
+            <div class="filter-section-title">Tipo</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_tp" value="Locação"> Locação</label>
+                <label class="cb-item"><input type="checkbox" name="f_tp" value="Carcaça"> Carcaça</label>
+                <label class="cb-item"><input type="checkbox" name="f_tp" value="Alienação"> Alienação</label>
             </div>
-            <div class="adv-filter-grid">
-                <div>
-                    <div class="filter-section-title">Divergência</div>
-                    <div class="checkbox-list">
-                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Sem divergência"> Sem divergência</label>
-                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Validar"> Validar</label>
-                        <label class="cb-item"><input type="checkbox" name="f_dv" value="Divergente"> Divergente</label>
-                    </div>
-                </div>`;
+        </div>
+    </div> <div class="adv-filter-grid">
+        <div>
+            <div class="filter-section-title">Local</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_wd" value="SP"> São Paulo (SP)</label>
+                <label class="cb-item"><input type="checkbox" name="f_wd" value="Fora de SP"> Fora de SP</label>
+            </div>
+        </div>
+
+        <div>
+            <div class="filter-section-title">Ação Doc</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
+                <label class="cb-item"><input type="checkbox" name="f_ac" value="Validação"> Validação</label>
+                <label class="cb-item"><input type="checkbox" name="f_ac" value="Entrada"> Entrada (Lançamento)</label>
+            </div>
+        </div>`;
+                } else {
+                    // Bloco para Devoluções
+                    html += `
+        <div>
+            <div class="filter-section-title">Ação</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_ac" value="Emissão"> Emissão</label>
+                <label class="cb-item"><input type="checkbox" name="f_ac" value="Lançamento"> Lançamento</label>
+            </div>
+        </div>
+    </div> <div class="adv-filter-grid">
+        <div>
+            <div class="filter-section-title">Divergência</div>
+            <div class="checkbox-list">
+                <label class="cb-item"><input type="checkbox" name="f_dv" value="Sem divergência"> Sem divergência</label>
+                <label class="cb-item"><input type="checkbox" name="f_dv" value="Validar"> Validar</label>
+                <label class="cb-item"><input type="checkbox" name="f_dv" value="Divergente"> Divergente</label>
+            </div>
+        </div>`;
+                }
+
+                html += `</div>`; // Fecha grid final
+                container.innerHTML = html;
+
+                // Exibe o modal
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('active'), 10);
+
+                // --- 3. Hidratação dos Checkboxes (Recuperar estado atual) ---
+
+                // Status
+                if (App.filters.status) {
+                    document.querySelectorAll('input[name="f_st"]').forEach(c => c.checked = App.filters.status.includes(c.value));
+                }
+
+                // Tipo
+                if (App.filters.type) {
+                    document.querySelectorAll('input[name="f_tp"]').forEach(c => c.checked = App.filters.type.includes(c.value));
+                }
+
+                // Ação
+                if (App.filters.action) {
+                    document.querySelectorAll('input[name="f_ac"]').forEach(c => c.checked = App.filters.action.includes(c.value));
+                }
+
+                // Divergência (Devoluções)
+                if (App.filters.divergence) {
+                    document.querySelectorAll('input[name="f_dv"]').forEach(c => c.checked = App.filters.divergence.includes(c.value));
+                }
+
+                // --- NOVO: Local (Retornos) ---
+                if (App.filters.withdrawal) {
+                    document.querySelectorAll('input[name="f_wd"]').forEach(c => c.checked = App.filters.withdrawal.includes(c.value));
+                }
+
+                // Datas
+                document.getElementById('adv_dt_start').value = App.filters.dateStart || '';
+                document.getElementById('adv_dt_end').value = App.filters.dateEnd || '';
             }
-            html += `</div>`;
-            container.innerHTML = html;
 
-            m.style.display = 'flex';
-            setTimeout(() => m.classList.add('active'), 10);
-
-            document.querySelectorAll('input[name="f_st"]').forEach(c => c.checked = App.filters.status.includes(c.value));
-            document.querySelectorAll('input[name="f_tp"]').forEach(c => c.checked = App.filters.type.includes(c.value));
-            document.querySelectorAll('input[name="f_ac"]').forEach(c => c.checked = App.filters.action.includes(c.value));
-            if (App.module === 'devolucoes') {
-                document.querySelectorAll('input[name="f_dv"]').forEach(c => c.checked = App.filters.divergence.includes(c.value));
+            function closeFilterModal() {
+                const m = document.getElementById('filterModal');
+                m.classList.remove('active');
+                setTimeout(() => m.style.display = 'none', 200);
             }
 
-            document.getElementById('adv_dt_start').value = App.filters.dateStart || '';
-            document.getElementById('adv_dt_end').value = App.filters.dateEnd || '';
-        }
+            function applyAdvFilter() {
+                const st = Array.from(document.querySelectorAll('input[name="f_st"]:checked')).map(c => c.value);
+                const tp = Array.from(document.querySelectorAll('input[name="f_tp"]:checked')).map(c => c.value);
+                const ac = Array.from(document.querySelectorAll('input[name="f_ac"]:checked')).map(c => c.value);
+                const dv = Array.from(document.querySelectorAll('input[name="f_dv"]:checked')).map(c => c.value);
 
-        function closeFilterModal() {
-            const m = document.getElementById('filterModal');
-            m.classList.remove('active');
-            setTimeout(() => m.style.display = 'none', 200);
-        }
+                // Você já tinha essa linha correta:
+                const wd = Array.from(document.querySelectorAll('input[name="f_wd"]:checked')).map(c => c.value);
 
-        function applyAdvFilter() {
-            const st = Array.from(document.querySelectorAll('input[name="f_st"]:checked')).map(c => c.value);
-            const tp = Array.from(document.querySelectorAll('input[name="f_tp"]:checked')).map(c => c.value);
-            const ac = Array.from(document.querySelectorAll('input[name="f_ac"]:checked')).map(c => c.value);
-            const dv = Array.from(document.querySelectorAll('input[name="f_dv"]:checked')).map(c => c.value);
-            const ds = document.getElementById('adv_dt_start').value;
-            const de = document.getElementById('adv_dt_end').value;
+                const ds = document.getElementById('adv_dt_start').value;
+                const de = document.getElementById('adv_dt_end').value;
 
-            App.filters = {
-                ...App.filters,
-                status: st, type: tp, action: ac, divergence: dv,
-                dateStart: ds || null, dateEnd: de || null
-            };
+                App.filters = {
+                    ...App.filters,
+                    status: st,
+                    type: tp,
+                    action: ac,
+                    divergence: dv,
+                    withdrawal: wd, // <--- O ERRO ESTAVA AQUI (FALTAVA ESSA LINHA)
+                    dateStart: ds || null,
+                    dateEnd: de || null
+                };
 
-            App.page = 1;
-            App.render();
-            closeFilterModal();
-        }
+                App.page = 1;
+                App.render();
+                closeFilterModal();
+            }
 
-        function openDownloadModal() {
-            const m = document.getElementById('downloadModal');
-            m.style.display = 'flex';
-            setTimeout(() => m.classList.add('active'), 10);
-        }
+            function openDownloadModal() {
+                const m = document.getElementById('downloadModal');
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('active'), 10);
+            }
 
-        App.init();
-    </script>
+            App.init();
+            function closeInfoModal() {
+                const m = document.getElementById('infoModal');
+                m.classList.remove('active');
+                setTimeout(() => m.style.display = 'none', 200);
+            }
+
+            function clearFilterForm() {
+                // 1. Desmarca todos os checkboxes dentro do modal de filtro
+                const checkboxes = document.querySelectorAll('#filterModal input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+
+                // 2. Limpa os campos de data
+                document.getElementById('adv_dt_start').value = '';
+                document.getElementById('adv_dt_end').value = '';
+
+                // Opcional: Feedback visual rápido
+                App.showToast('Filtros limpos (Clique em Aplicar)', 'success');
+            }
+        </script>
 </body>
 
 </html>
