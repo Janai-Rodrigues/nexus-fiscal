@@ -1826,7 +1826,16 @@
 
                 confirmStatusChange(newStatus) {
                     if (this.activeStatusId) {
-                        db.collection('notes').doc(this.activeStatusId).update({ status: newStatus })
+                        // --- CORREÇÃO: Preparar o objeto de atualização ---
+                        const updateData = { status: newStatus };
+
+                        // Se o novo status for Finalizado, grava o timestamp atual
+                        if (newStatus === 'Finalizado') {
+                            updateData.finishedAt = Date.now();
+                        }
+                        // --------------------------------------------------
+
+                        db.collection('notes').doc(this.activeStatusId).update(updateData)
                             .then(() => {
                                 this.showToast(`Status alterado para ${newStatus}`, 'success');
                             })
@@ -2285,11 +2294,20 @@
 
             function handleSubmit(e) {
                 e.preventDefault();
+
+                const statusValue = document.getElementById('f_status').value;
+
                 const commonData = {
                     date: document.getElementById('f_date').value,
-                    status: document.getElementById('f_status').value,
+                    status: statusValue,
                     obs: document.getElementById('f_obs').value
                 };
+
+                // --- CORREÇÃO: Gravar data se for finalizado ---
+                if (statusValue === 'Finalizado') {
+                    commonData.finishedAt = Date.now();
+                }
+                // -----------------------------------------------
 
                 if (App.module === 'retornos') {
                     App.addOrUpdate({
