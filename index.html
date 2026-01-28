@@ -71,6 +71,15 @@
             --st-total-txt: #93c5fd;
         }
 
+	#configDrawer {
+    		z-index: 250; /* Garante que fique acima da tela de Info (200) */
+	}
+
+   	/* Eleva a sombra para ficar acima da tela de Info, mas abaixo da Config */
+		.drawer-overlay.super-overlay {
+   		 z-index: 220 !important;
+	}
+
         /* --- Scrollbars --- */
         ::-webkit-scrollbar {
             width: 8px;
@@ -871,7 +880,6 @@
             bottom: 0;
             width: 450px;
             background: var(--bg-surface);
-            box-shadow: -10px 0 25px rgba(0, 0, 0, 0.2);
             z-index: 100;
             transform: translateX(100%);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -885,12 +893,13 @@
         }
 
         .drawer-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    		height: 60px;          /* Define a altura fixa igual à do menu lateral */
+    		padding: 0 24px;       /* Remove o padding vertical, mantendo o horizontal */
+    		border-bottom: 1px solid var(--border);
+    		display: flex;
+    		justify-content: space-between;
+    		align-items: center;   /* O Flexbox já vai centralizar o texto verticalmente */
+	}
 
         .drawer-title {
             font-weight: 700;
@@ -1212,6 +1221,7 @@
             right: 0 !important;
             left: var(--sidebar-width-collapsed) !important;
             z-index: 200 !important;
+	    border-left: none !important;
         }
 
         .sidebar.expanded~.content-wrapper .fullscreen-drawer {
@@ -2276,6 +2286,7 @@
 
         // --- NAVIGATION CONTROLLER ---
         function navTo(view, el) {
+	    closeAllDrawers();
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             if (el) el.classList.add('active');
 
@@ -3481,6 +3492,7 @@
 
         function closeAllDrawers() {
             document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+	    document.getElementById('drawerOverlay').classList.remove('super-overlay');
             document.getElementById('drawerOverlay').classList.remove('open');
             App.closeModal();
         }
@@ -3531,6 +3543,7 @@
         function openConfig() {
             document.getElementById('cfg_delay').value = App.config.delay;
             document.getElementById('cfg_perPage').value = App.config.perPage;
+	    document.getElementById('drawerOverlay').classList.add('super-overlay');
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('configDrawer').classList.add('open');
         }
