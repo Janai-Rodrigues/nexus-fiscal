@@ -719,10 +719,20 @@
         }
 
         .action-cell {
+            display: table-cell !important;
+            /* Força comportamento de célula */
+            vertical-align: middle !important;
+            /* Centraliza verticalmente na linha */
+            overflow: visible !important;
+            white-space: normal !important;
+        }
+
+        .action-flex {
             display: flex;
             justify-content: flex-end;
-            gap: 4px;
-            min-width: 70px;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
         }
 
         .btn-icon {
@@ -1428,8 +1438,9 @@
         .info-compact-grid {
             display: grid;
             /* A 1ª coluna ocupa o dobro do espaço (2 frações), as outras 1 fração cada */
-            grid-template-columns: 2fr 1fr 1fr; 
-            gap: 16px 24px; /* gap vertical e horizontal */
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px 24px;
+            /* gap vertical e horizontal */
             margin-bottom: 16px;
         }
 
@@ -1545,7 +1556,8 @@
         /* Responsividade para tela de info */
         @media (max-width: 768px) {
             .info-compact-grid {
-                grid-template-columns: 1fr; /* Empilha tudo em mobile */
+                grid-template-columns: 1fr;
+                /* Empilha tudo em mobile */
                 gap: 12px;
             }
         }
@@ -2636,12 +2648,12 @@
 
             // --- Seção de Endereço (Retornos) ---
             if (App.module === 'retornos' && (item.address || item.addressRua)) {
-                 const parts = [];
-                 if (item.addressRua) parts.push(item.addressRua + (item.addressNumero ? `, ${item.addressNumero}` : ''));
-                 if (item.addressBairro) parts.push(item.addressBairro);
-                 if (item.addressCidade || item.addressEstado) parts.push(`${item.addressCidade || ''}/${item.addressEstado || ''}`);
-                 if (item.cep) parts.push(`CEP: ${item.cep}`);
-                 const fullAddressLine = parts.join(' - ');
+                const parts = [];
+                if (item.addressRua) parts.push(item.addressRua + (item.addressNumero ? `, ${item.addressNumero}` : ''));
+                if (item.addressBairro) parts.push(item.addressBairro);
+                if (item.addressCidade || item.addressEstado) parts.push(`${item.addressCidade || ''}/${item.addressEstado || ''}`);
+                if (item.cep) parts.push(`CEP: ${item.cep}`);
+                const fullAddressLine = parts.join(' - ');
 
                 html += `
                     <div class="info-address-section">
@@ -2661,8 +2673,8 @@
             // --- Seção de Status ---
             let statusColor = 'var(--text-muted)';
             let statusClass = '';
-            if (item.status === 'Pendente') { statusClass = 'pendente'; } 
-            else if (item.status === 'Em andamento') { statusClass = 'andamento'; } 
+            if (item.status === 'Pendente') { statusClass = 'pendente'; }
+            else if (item.status === 'Em andamento') { statusClass = 'andamento'; }
             else if (item.status === 'Finalizado') { statusClass = 'finalizado'; }
 
             html += `
@@ -2820,9 +2832,9 @@
             handleRowClick(e, id) {
                 // Verifica onde foi o clique original (target)
                 // Se foi em um botão, checkbox, menu de status ou link, NÃO abre a info
-                if (e.target.closest('button') || 
-                    e.target.closest('input[type="checkbox"]') || 
-                    e.target.closest('.status-dot') || 
+                if (e.target.closest('button') ||
+                    e.target.closest('input[type="checkbox"]') ||
+                    e.target.closest('.status-dot') ||
                     e.target.closest('.action-cell')) {
                     return;
                 }
@@ -3020,7 +3032,7 @@
                             </div>
                             <div class="log-form">
                                 <textarea class="log-textarea" id="logMessage" placeholder="Descreva a atividade realizada..."></textarea>
-                                <button class="btn-new" onclick="App.submitLogEntry('${item.id}')" style="width:100%;">
+                                <button class="btn-new" onclick="App.submitLogEntry('${item.id}')">
                                     <svg class="icon" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
@@ -3073,7 +3085,7 @@
                         </div>
                         <div class="log-form">
                             <textarea class="log-textarea" id="logMessage" placeholder="Descreva a atividade realizada..."></textarea>
-                            <button class="btn-new" onclick="App.submitLogEntry('${item.id}')" style="width:100%;">
+                            <button class="btn-new" onclick="App.submitLogEntry('${item.id}')">
                                 <svg class="icon" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
@@ -3125,60 +3137,60 @@
             },
 
             getFilteredData() {
-        return this.data.filter(item => {
-            // 1. Filtro de Módulo (Retornos ou Devoluções)
-            const itemModule = item.module || 'retornos';
-            if (itemModule !== this.module) return false;
+                return this.data.filter(item => {
+                    // 1. Filtro de Módulo (Retornos ou Devoluções)
+                    const itemModule = item.module || 'retornos';
+                    if (itemModule !== this.module) return false;
 
-            // 2. Filtro de Busca (Search Input)
-            const rawSearch = this.filters.search;
-            
-            if (rawSearch) {
-                const sSimple = rawSearch.toLowerCase(); // Busca simples 
-                const sAddress = normalizeAddress(rawSearch); // Busca normalizada para endereços
+                    // 2. Filtro de Busca (Search Input)
+                    const rawSearch = this.filters.search;
 
-                if (this.module === 'retornos') {
-                    // Verifica Título e Série (busca simples)
-                    const matchTitle = item.title?.toLowerCase().includes(sSimple);
-                    const matchSeries = item.series?.toLowerCase().includes(sSimple);
-                    
-                    // Verifica Endereço (busca inteligente/normalizada)
-                    // Normalizamos o endereço do banco também para garantir que "Rua" bata com "R."
-                    const dbAddress = normalizeAddress(item.address || '');
-                    const matchAddress = dbAddress.includes(sAddress);
+                    if (rawSearch) {
+                        const sSimple = rawSearch.toLowerCase(); // Busca simples 
+                        const sAddress = normalizeAddress(rawSearch); // Busca normalizada para endereços
 
-                    if (!matchTitle && !matchAddress && !matchSeries) return false;
-                } else {
-                    // Lógica para Devoluções (busca simples)
-                    const matchClient = item.client?.toLowerCase().includes(sSimple);
-                    const matchSale = item.saleNote?.toLowerCase().includes(sSimple);
-                    const matchReturn = item.returnNote?.toLowerCase().includes(sSimple);
-                    
-                    if (!matchClient && !matchSale && !matchReturn) return false;
-                }
-            }
+                        if (this.module === 'retornos') {
+                            // Verifica Título e Série (busca simples)
+                            const matchTitle = item.title?.toLowerCase().includes(sSimple);
+                            const matchSeries = item.series?.toLowerCase().includes(sSimple);
 
-            // 3. Filtros de Checkbox e Seleção
-            if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
-            if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
-            if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
-            if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
+                            // Verifica Endereço (busca inteligente/normalizada)
+                            // Normalizamos o endereço do banco também para garantir que "Rua" bata com "R."
+                            const dbAddress = normalizeAddress(item.address || '');
+                            const matchAddress = dbAddress.includes(sAddress);
 
-            // Filtro de Local (Withdrawal)
-            if (this.filters.withdrawal && this.filters.withdrawal.length > 0) {
-                if (!item.withdrawal || !this.filters.withdrawal.includes(item.withdrawal)) return false;
-            }
+                            if (!matchTitle && !matchAddress && !matchSeries) return false;
+                        } else {
+                            // Lógica para Devoluções (busca simples)
+                            const matchClient = item.client?.toLowerCase().includes(sSimple);
+                            const matchSale = item.saleNote?.toLowerCase().includes(sSimple);
+                            const matchReturn = item.returnNote?.toLowerCase().includes(sSimple);
 
-            // 4. Filtro de Data
-            if (this.filters.dateStart || this.filters.dateEnd) {
-                const d = item.date;
-                if (this.filters.dateStart && d < this.filters.dateStart) return false;
-                if (this.filters.dateEnd && d > this.filters.dateEnd) return false;
-            }
+                            if (!matchClient && !matchSale && !matchReturn) return false;
+                        }
+                    }
 
-            return true;
-        });
-    },
+                    // 3. Filtros de Checkbox e Seleção
+                    if (this.filters.status.length > 0 && !this.filters.status.includes(item.status)) return false;
+                    if (this.filters.type.length > 0 && !this.filters.type.includes(item.type)) return false;
+                    if (this.filters.action.length > 0 && !this.filters.action.includes(item.action)) return false;
+                    if (this.filters.divergence.length > 0 && !this.filters.divergence.includes(item.divergence)) return false;
+
+                    // Filtro de Local (Withdrawal)
+                    if (this.filters.withdrawal && this.filters.withdrawal.length > 0) {
+                        if (!item.withdrawal || !this.filters.withdrawal.includes(item.withdrawal)) return false;
+                    }
+
+                    // 4. Filtro de Data
+                    if (this.filters.dateStart || this.filters.dateEnd) {
+                        const d = item.date;
+                        if (this.filters.dateStart && d < this.filters.dateStart) return false;
+                        if (this.filters.dateEnd && d > this.filters.dateEnd) return false;
+                    }
+
+                    return true;
+                });
+            },
 
             render() {
                 // 1. Configurar Cabeçalhos
@@ -3197,7 +3209,7 @@
             <th style="width: 150px">Série</th>
             <th style="width: 130px">Status</th>
             <th style="width: 90px">Dias</th>
-            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 100px; text-align: right;"></th>
+            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 120px; text-align: right;"></th>
         </tr>`;
                 } else {
                     thead.innerHTML = `
@@ -3211,7 +3223,7 @@
             <th style="width: 140px">Divergência</th>
             <th style="width: 130px">Status</th>
             <th style="width: 90px">Dias</th>
-            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 100px; text-align: right;"></th>
+            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 120px; text-align: right;"></th>
         </tr>`;
                 }
 
@@ -3277,7 +3289,7 @@
                     if (item.status === 'Finalizado') stClass = 'st-finalizado';
 
                     const tr = document.createElement('tr');
-                    
+
                     // --- ALTERAÇÃO AQUI: Adiciona o clique na linha e o cursor pointer ---
                     tr.style.cursor = 'pointer';
                     tr.onclick = (e) => App.handleRowClick(e, item.id);
@@ -3286,7 +3298,7 @@
                     if (isSel) tr.classList.add('selected');
 
                     // (O restante do código de criação dos botões continua igual)
-                    const infoBtn = `... (mantenha seu código do infoBtn) ...`; 
+                    const infoBtn = `... (mantenha seu código do infoBtn) ...`;
                     const actions = `
         <button class="btn-icon" onclick="openEditFullscreen('${item.id}')" title="Editar"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg></button>
         <button class="btn-icon del" onclick="App.delete('${item.id}')" title="Excluir"><svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
@@ -3296,9 +3308,9 @@
 
                     // (O restante da montagem do HTML continua igual, apenas verifique se não apagou nada acidentalmente)
                     if (this.module === 'retornos') {
-                         // ... (Seu código HTML do innerHTML) ...
-                         const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
-                         tr.innerHTML = `
+                        // ... (Seu código HTML do innerHTML) ...
+                        const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
+                        tr.innerHTML = `
                             <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
                             <td>${item.title || '-'}</td>
                             <td>${item.date.split('-').reverse().join('/')}</td>
@@ -3315,7 +3327,7 @@
                                     </svg>
                                 </button>
                             </td>
-                            <td class="action-cell">${actions}</td>
+                            <td class="action-cell"><div class="action-flex">${actions}</div></td>
                         `;
                     } else {
                         // ... (Seu código HTML do innerHTML para Devoluções) ...
@@ -3336,7 +3348,7 @@
                                     </svg>
                                 </button>
                             </td>
-                            <td class="action-cell">${actions}</td>
+                            <td class="action-cell"><div class="action-flex">${actions}</div></td>
                         `;
                     }
                     tbody.appendChild(tr);
