@@ -1820,6 +1820,16 @@
         #infoFullscreenDrawer {
             z-index: 200 !important;
         }
+
+        .inp:focus,
+        select.inp:focus,
+        textarea.inp:focus,
+        input:required:invalid:focus,
+        select:required:invalid:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px var(--primary-glow) !important;
+            outline: none;
+        }
     </style>
 </head>
 
@@ -2114,7 +2124,7 @@
                             <div class="form-group">
                                 <label>CEP</label>
                                 <input type="text" id="fs_cep" class="inp" maxlength="9" oninput="formatCEP(this)"
-                                    placeholder="00000-000" name="cep">
+                                    onkeydown="checkCepEnter(event)" placeholder="00000-000" name="cep">
                             </div>
                             <div>
                                 <button type="button" class="cep-search-btn" id="cepSearchBtn" onclick="buscarCEP()">
@@ -2631,6 +2641,15 @@
                 retDiv.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
             }
         }
+        // 1. Função para detectar o Enter no campo CEP
+        function checkCepEnter(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Impede que o formulário seja enviado (salvo)
+                buscarCEP();        // Chama a função de busca
+            }
+        }
+
+        // 2. Atualize a função de abrir NOVO registro (para focar no primeiro campo)
         function openFullscreenDrawer() {
             App.editingId = null;
             const title = App.module === 'retornos' ? 'Novo Retorno' : 'Nova Devolução';
@@ -2645,7 +2664,6 @@
                 document.getElementById('fs_date_dev').value = today;
             }
 
-            // --- CORREÇÃO AQUI: Chama a função que gerencia o disabled ---
             updateFormMode();
 
             // Reseta campos de divergência
@@ -2654,8 +2672,18 @@
             // Abre o drawer
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('fullscreenDrawer').classList.add('open');
+
+            // --- CÓDIGO NOVO: Foco Automático ---
+            setTimeout(() => {
+                if (App.module === 'retornos') {
+                    document.getElementById('fs_title').focus();
+                } else {
+                    document.getElementById('fs_client').focus();
+                }
+            }, 100); // Pequeno delay para aguardar a animação do drawer
         }
 
+        // 3. Atualize a função de EDITAR registro (para focar no primeiro campo)
         function openEditFullscreen(id) {
             const item = App.data.find(i => i.id === id);
             if (!item) return;
@@ -2664,12 +2692,11 @@
             const title = App.module === 'retornos' ? 'Editar Retorno' : 'Editar Devolução';
             document.getElementById('fullscreenDrawerTitle').innerText = title;
 
-            // --- CORREÇÃO AQUI: Chama a função que gerencia o disabled ---
             updateFormMode();
 
-            // Preenche os campos com base no módulo
+            // ... (Mantenha todo o seu código de preenchimento dos campos aqui - fs_title, fs_client, etc) ...
+            // PREENCHIMENTO RETORNOS
             if (App.module === 'retornos') {
-                // ... (seu código existente de preencher Retornos continua igual) ...
                 document.getElementById('fs_title').value = item.title || '';
                 document.getElementById('fs_date').value = item.date || new Date().toISOString().split('T')[0];
                 document.getElementById('fs_status').value = item.status || 'Pendente';
@@ -2685,7 +2712,7 @@
                 document.getElementById('fs_cidade').value = item.addressCidade || '';
                 document.getElementById('fs_estado').value = item.addressEstado || '';
             } else {
-                // ... (seu código existente de preencher Devoluções continua igual) ...
+                // PREENCHIMENTO DEVOLUÇÕES
                 document.getElementById('fs_client').value = item.client || '';
                 document.getElementById('fs_saleNote').value = item.saleNote || '';
                 document.getElementById('fs_returnNote').value = item.returnNote || '';
@@ -2696,7 +2723,6 @@
                 document.getElementById('fs_obs').value = item.obs || '';
 
                 toggleDivergenceFields();
-                // ... (restante do código de divergências) ...
                 if (item.divergence === 'Divergente' && item.divergenceDetails) {
                     try {
                         const details = JSON.parse(item.divergenceDetails);
@@ -2713,6 +2739,15 @@
             // Abre o drawer
             document.getElementById('drawerOverlay').classList.add('open');
             document.getElementById('fullscreenDrawer').classList.add('open');
+
+            // --- CÓDIGO NOVO: Foco Automático na Edição ---
+            setTimeout(() => {
+                if (App.module === 'retornos') {
+                    document.getElementById('fs_title').focus();
+                } else {
+                    document.getElementById('fs_client').focus();
+                }
+            }, 100);
         }
 
         // CORREÇÃO 1: Função de submit corrigida
@@ -2807,7 +2842,7 @@
                 // Não removemos o overlay (drawerOverlay), pois a info precisa dele.
                 // Apenas limpamos o ID de edição para não atrapalhar futuras criações
                 App.editingId = null;
-                
+
                 // Opcional: Se você acabou de salvar, a atualização automática do Firebase 
                 // (onSnapshot) vai atualizar os dados da tela de Info sozinha.
             } else {
