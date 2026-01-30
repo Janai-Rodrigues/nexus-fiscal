@@ -1643,6 +1643,183 @@
             background: var(--st-done-bg);
             color: var(--st-done-txt);
         }
+
+        /* --- CSS para Edição e Histórico de Logs --- */
+
+        /* Container do cabeçalho do log para permitir alinhamento */
+        .log-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            /* Alinha ao topo caso o nome seja longo */
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        /* Agrupamento de informações do usuário e data */
+        .log-meta-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Área de controles (ícones) à direita */
+        .log-controls-right {
+            display: flex;
+            gap: 8px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .log-entry:hover .log-controls-right {
+            opacity: 1;
+        }
+
+        /* Botões pequenos de ação */
+        .btn-log-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-log-action:hover {
+            background: var(--bg-subtle);
+            color: var(--primary);
+        }
+
+        /* Texto de data de edição */
+        .log-edited-info {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Área de edição (textarea dentro do log) */
+        .log-edit-container {
+            margin-top: 8px;
+        }
+
+        .log-edit-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 60px;
+            margin-bottom: 8px;
+        }
+
+        .log-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* --- Popover de Histórico (Versões Anteriores) --- */
+        .history-popover {
+            position: fixed;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            z-index: 3000;
+            /* Acima de tudo */
+            width: 320px;
+            max-height: 400px;
+            display: none;
+            /* Escondido por padrão */
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUpFade 0.2s ease-out;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hp-header {
+            padding: 12px 16px;
+            background: var(--bg-subtle);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .hp-body {
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .h-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .h-msg {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            line-height: 1.4;
+            background: var(--bg-body);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        /* Backdrop invisível para fechar o popover ao clicar fora */
+        .history-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 2999;
+            display: none;
+        }
+
+        /* Garante que o Formulário de Edição fique ACIMA da tela de Info */
+        #fullscreenDrawer {
+            z-index: 220 !important;
+            /* A info tem 200, então colocamos 220 */
+        }
+
+        /* A tela de Info fica na camada base dos drawers */
+        #infoFullscreenDrawer {
+            z-index: 200 !important;
+        }
     </style>
 </head>
 
@@ -1866,7 +2043,7 @@
         </div>
     </div>
 
-    <div class="drawer-overlay" id="drawerOverlay" onclick="closeAllDrawers()"></div>
+    <div class="drawer-overlay" id="drawerOverlay" onclick="handleOverlayClick()"></div>
 
     <!-- Drawer de formulário em tela cheia -->
     <div class="drawer fullscreen-drawer" id="fullscreenDrawer">
@@ -2139,7 +2316,7 @@
     <div class="drawer" id="configDrawer">
         <div class="drawer-header">
             <h2 class="drawer-title">Preferências</h2>
-            <button onclick="closeAllDrawers()"><svg class="icon" viewBox="0 0 24 24">
+            <button onclick="closeConfig()"><svg class="icon" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg></button>
         </div>
@@ -2266,6 +2443,21 @@
         </div>
         <div class="status-opt opt-finalizado" onclick="App.confirmStatusChange('Finalizado')">
             <span class="dot"></span> Finalizado
+        </div>
+    </div>
+
+    <div class="history-backdrop" id="historyBackdrop" onclick="App.closeLogHistory()"></div>
+
+    <div id="historyPopover" class="history-popover">
+        <div class="hp-header">
+            <span>Histórico de Edições</span>
+            <button class="btn-icon" style="width:24px; height:24px;" onclick="App.closeLogHistory()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="hp-body" id="historyContent">
         </div>
     </div>
 
@@ -2465,7 +2657,6 @@
         }
 
         function openEditFullscreen(id) {
-            closeInfoFullscreenDrawer();
             const item = App.data.find(i => i.id === id);
             if (!item) return;
 
@@ -2605,8 +2796,26 @@
         }
 
         function closeFullscreenDrawer() {
+            // 1. Fecha apenas a gaveta do formulário (o editor)
             document.getElementById('fullscreenDrawer').classList.remove('open');
-            document.getElementById('drawerOverlay').classList.remove('open');
+
+            // 2. Verifica se a tela de Info está aberta por baixo
+            const isInfoOpen = document.getElementById('infoFullscreenDrawer').classList.contains('open');
+
+            if (isInfoOpen) {
+                // SE A INFO ESTIVER ABERTA:
+                // Não removemos o overlay (drawerOverlay), pois a info precisa dele.
+                // Apenas limpamos o ID de edição para não atrapalhar futuras criações
+                App.editingId = null;
+                
+                // Opcional: Se você acabou de salvar, a atualização automática do Firebase 
+                // (onSnapshot) vai atualizar os dados da tela de Info sozinha.
+            } else {
+                // SE NÃO TIVER NADA EM BAIXO:
+                // Remove o overlay e fecha tudo
+                document.getElementById('drawerOverlay').classList.remove('open');
+                App.editingId = null;
+            }
         }
 
         function openInfoFullscreen(id) {
@@ -2951,6 +3160,7 @@
                         this.data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         this.data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                         this.render();
+                        this.updateInfoView();
                     }, err => console.error("Erro Firestore:", err));
             },
 
@@ -3067,60 +3277,99 @@
                 });
             },
 
+            // --- Helper de Data ---
+            formatDateTime(ts) {
+                if (!ts) return '';
+                return new Date(ts).toLocaleString('pt-BR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            },
+
+            // --- RENDERIZAÇÃO DO LOG (SUBSTITUA O SEU POR ESTE) ---
             renderLogSection(item) {
                 if (!item.logs || !Array.isArray(item.logs) || item.logs.length === 0) {
                     return `
                         <div class="log-container">
-                            <div class="log-header">
-                                <div class="log-title">Registro de Atividades</div>
-                                <div class="log-controls">
-                                    <button class="btn-tool" onclick="App.toggleLogSort()" title="Ordenar">
-                                        <svg class="icon" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                            <div class="log-header"><div class="log-title">Registro de Atividades</div></div>
                             <div class="log-entries">
-                                <div style="text-align:center; padding:40px; color:var(--text-muted);">
-                                    Nenhum registro encontrado.
-                                </div>
+                                <div style="text-align:center; padding:40px; color:var(--text-muted);">Nenhum registro encontrado.</div>
                             </div>
                             <div class="log-form">
                                 <textarea class="log-textarea" id="logMessage" placeholder="Descreva a atividade realizada..."></textarea>
-                                <button class="btn-new" onclick="App.submitLogEntry('${item.id}')">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                    </svg>
-                                    Adicionar Registro
-                                </button>
+                                <button class="btn-new" onclick="App.submitLogEntry('${item.id}')">Adicionar Registro</button>
                             </div>
                         </div>`;
                 }
 
-                // Ordena os logs
-                const sortedLogs = [...item.logs].sort((a, b) => {
+                // Mapeia índices originais para saber qual editar
+                const logsWithIndex = item.logs.map((log, idx) => ({ ...log, originalIndex: idx }));
+
+                // Ordenação
+                const sortedLogs = logsWithIndex.sort((a, b) => {
                     return this.logSortDesc ? b.timestamp - a.timestamp : a.timestamp - b.timestamp;
                 });
 
                 let logsHtml = '';
+
                 sortedLogs.forEach(log => {
-                    const date = new Date(log.timestamp);
-                    const formattedDate = date.toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+                    // Verifica se está editando ESTE item específico
+                    const isEditing = (this.editingLogItemId === item.id && this.editingLogIndex === log.originalIndex);
+                    const hasHistory = log.history && log.history.length > 0;
+
+                    // Formata datas
+                    const dtCriacao = this.formatDateTime(log.timestamp);
+                    const dtEdicao = log.editedAt ? this.formatDateTime(log.editedAt) : null;
+
+                    // --- Conteúdo do Log (Texto ou Input) ---
+                    let contentBody = '';
+                    if (isEditing) {
+                        contentBody = `
+                            <div class="log-edit-container">
+                                <textarea class="log-edit-textarea" id="editLogInput_${log.originalIndex}">${log.message}</textarea>
+                                <div class="log-edit-actions">
+                                    <button class="btn-sec" style="padding:6px 12px; font-size:0.8rem" onclick="App.cancelEditLog()">Cancelar</button>
+                                    <button class="btn-new" style="padding:6px 12px; font-size:0.8rem" onclick="App.saveEditLog('${item.id}', ${log.originalIndex})">Salvar</button>
+                                </div>
+                            </div>`;
+                    } else {
+                        contentBody = `<div class="log-message" style="white-space: pre-wrap;">${log.message}</div>`;
+                    }
+
+                    // --- Botões da Direita (Histórico e Editar) ---
+                    let actionButtons = '';
+                    if (!isEditing) {
+                        actionButtons = `<div class="log-controls-right">`;
+
+                        // Botão Histórico (só aparece se tiver histórico)
+                        if (hasHistory) {
+                            actionButtons += `
+                                <button class="btn-log-action" onclick="App.viewLogHistory(event, '${item.id}', ${log.originalIndex})" title="Ver versões anteriores">
+                                    <svg class="icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </button>`;
+                        }
+
+                        // Botão Editar (Lápis)
+                        actionButtons += `
+                            <button class="btn-log-action" onclick="App.enableEditLog('${item.id}', ${log.originalIndex})" title="Editar">
+                                <svg class="icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                            </button>
+                        </div>`;
+                    }
 
                     logsHtml += `
                         <div class="log-entry">
                             <div class="log-entry-header">
-                                <span class="log-timestamp">${formattedDate}</span>
-                                <span class="log-user">${log.userEmail.split('@')[0]}</span>
+                                <div class="log-meta-left">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span class="log-user">${log.userEmail.split('@')[0]}</span>
+                                        <span class="log-timestamp">${dtCriacao}</span>
+                                    </div>
+                                    ${dtEdicao ? `<div class="log-edited-info">Editado em ${dtEdicao}</div>` : ''}
+                                </div>
+                                ${actionButtons}
                             </div>
-                            <div class="log-message">${log.message}</div>
+                            ${contentBody}
                         </div>`;
                 });
 
@@ -3129,26 +3378,132 @@
                         <div class="log-header">
                             <div class="log-title">Registro de Atividades (${item.logs.length})</div>
                             <div class="log-controls">
-                                <button class="btn-tool" onclick="App.toggleLogSort()" title="${this.logSortDesc ? 'Mais antigos primeiro' : 'Mais recentes primeiro'}">
-                                    <svg class="icon" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" />
-                                    </svg>
+                                <button class="btn-tool" onclick="App.toggleLogSort()" title="Ordenar">
+                                    <svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" /></svg>
                                 </button>
                             </div>
                         </div>
-                        <div class="log-entries">
-                            ${logsHtml}
-                        </div>
+                        <div class="log-entries">${logsHtml}</div>
                         <div class="log-form">
                             <textarea class="log-textarea" id="logMessage" placeholder="Descreva a atividade realizada..."></textarea>
                             <button class="btn-new" onclick="App.submitLogEntry('${item.id}')">
-                                <svg class="icon" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
+                                <svg class="icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 Adicionar Registro
                             </button>
                         </div>
                     </div>`;
+            },
+
+            // --- NOVAS FUNÇÕES (COLE ISSO LOGO APÓS O renderLogSection) ---
+
+            // Estado da edição
+            editingLogItemId: null,
+            editingLogIndex: null,
+
+            enableEditLog(itemId, index) {
+                this.editingLogItemId = itemId;
+                this.editingLogIndex = index;
+                this.updateInfoView(); // Re-renderiza para mostrar o textarea
+
+                // Foca no campo
+                setTimeout(() => {
+                    const el = document.getElementById(`editLogInput_${index}`);
+                    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+                }, 100);
+            },
+
+            cancelEditLog() {
+                this.editingLogItemId = null;
+                this.editingLogIndex = null;
+                this.updateInfoView();
+            },
+
+            saveEditLog(itemId, index) {
+                const input = document.getElementById(`editLogInput_${index}`);
+                const newText = input.value.trim();
+
+                if (!newText) { this.showToast('O comentário não pode ser vazio', 'error'); return; }
+
+                const item = this.data.find(i => i.id === itemId);
+                if (!item) return;
+
+                // Copia o array de logs
+                const newLogs = [...item.logs];
+                const targetLog = newLogs[index];
+
+                if (targetLog.message === newText) { this.cancelEditLog(); return; }
+
+                // Cria histórico da versão anterior
+                const historyEntry = {
+                    message: targetLog.message,
+                    timestamp: targetLog.editedAt || targetLog.timestamp
+                };
+
+                const newHistory = targetLog.history ? [...targetLog.history] : [];
+                newHistory.push(historyEntry);
+
+                // Atualiza o log
+                newLogs[index] = {
+                    ...targetLog,
+                    message: newText,
+                    editedAt: Date.now(),
+                    history: newHistory
+                };
+
+                // Salva no Firebase
+                db.collection('notes').doc(itemId).update({ logs: newLogs })
+                    .then(() => {
+                        this.showToast('Registro editado!', 'success');
+                        this.cancelEditLog();
+                    })
+                    .catch(() => this.showToast('Erro ao editar', 'error'));
+            },
+
+            // --- FUNÇÕES DO POPUP DE HISTÓRICO ---
+            viewLogHistory(e, itemId, index) {
+                e.stopPropagation();
+                const item = this.data.find(i => i.id === itemId);
+                const log = item.logs[index];
+                const history = log.history || [];
+
+                // Ordena histórico (mais recente no topo)
+                const sortedHistory = [...history].sort((a, b) => b.timestamp - a.timestamp);
+
+                const container = document.getElementById('historyContent');
+                let html = '';
+
+                sortedHistory.forEach((h, i) => {
+                    html += `
+                        <div class="history-item">
+                            <div class="h-meta">
+                                <span>Versão ${sortedHistory.length - i}</span>
+                                <span>${this.formatDateTime(h.timestamp)}</span>
+                            </div>
+                            <div class="h-msg">${h.message}</div>
+                        </div>`;
+                });
+
+                container.innerHTML = html || '<div style="padding:20px; text-align:center">Sem histórico</div>';
+
+                // Mostra e posiciona o popover perto do mouse
+                const popover = document.getElementById('historyPopover');
+                const backdrop = document.getElementById('historyBackdrop');
+                const rect = e.currentTarget.getBoundingClientRect();
+
+                popover.style.display = 'flex';
+                backdrop.style.display = 'block';
+
+                // Posicionamento inteligente (canto direito alinhado)
+                popover.style.top = (rect.bottom + 5) + 'px';
+                // Tenta alinhar à direita, se sair da tela, alinha à esquerda
+                let leftPos = rect.right - 320;
+                if (leftPos < 10) leftPos = rect.left;
+                popover.style.left = leftPos + 'px';
+            },
+
+            closeLogHistory() {
+                document.getElementById('historyPopover').style.display = 'none';
+                document.getElementById('historyBackdrop').style.display = 'none';
             },
 
             toggleLogSort() {
@@ -3459,7 +3814,11 @@
                 this.config.perPage = parseInt(document.getElementById('cfg_perPage').value) || 10;
                 localStorage.setItem('nexus_config', JSON.stringify(this.config));
                 this.showToast('Configurações Salvas', 'success');
-                this.page = 1; this.render(); closeAllDrawers();
+
+                this.page = 1;
+                this.render();
+
+                closeConfig(); // <--- MUDANÇA AQUI: Usa a nova função segura
             },
 
             downloadExcel(mode) {
@@ -3540,6 +3899,39 @@
             document.getElementById('drawerOverlay').classList.remove('super-overlay');
             document.getElementById('drawerOverlay').classList.remove('open');
             App.closeModal();
+        }
+
+        // Nova função específica para fechar Configurações sem matar a tela de trás
+        function closeConfig() {
+            const configDrawer = document.getElementById('configDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+
+            // 1. Fecha o drawer de config
+            configDrawer.classList.remove('open');
+
+            // 2. Remove a classe que deixa o overlay "por cima de tudo" (super-overlay)
+            overlay.classList.remove('super-overlay');
+
+            // 3. Verifica se a tela de Info ou Formulário estão abertas atrás
+            const isInfoOpen = document.getElementById('infoFullscreenDrawer').classList.contains('open');
+            const isFormOpen = document.getElementById('fullscreenDrawer').classList.contains('open');
+
+            // 4. Se NENHUMA outra tela estiver aberta, fecha o overlay.
+            // Caso contrário, mantém o overlay aberto (agora com z-index normal para a tela de trás)
+            if (!isInfoOpen && !isFormOpen) {
+                overlay.classList.remove('open');
+            }
+        }
+
+        // Nova função inteligente para o clique no fundo escuro
+        function handleOverlayClick() {
+            // Se o Config estiver aberto, fecha só ele (volta para a tela anterior)
+            if (document.getElementById('configDrawer').classList.contains('open')) {
+                closeConfig();
+            } else {
+                // Se não for config, fecha tudo (comportamento padrão)
+                closeAllDrawers();
+            }
         }
 
         function quickFilter(st) {
