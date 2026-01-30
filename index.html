@@ -1065,11 +1065,16 @@
         /* Toasts */
         .toast-container {
             position: fixed;
-            bottom: 24px;
+            top: 24px;
+            /* <--- Mude de 'bottom' para 'top' */
             right: 24px;
-            z-index: 400;
+            bottom: auto;
+            /* Garante que não use a margem inferior */
+            z-index: 2100;
+            /* Z-Index alto para ficar acima de tudo */
             display: flex;
             flex-direction: column;
+            /* Mantém a coluna normal */
             gap: 10px;
             pointer-events: none;
         }
@@ -3076,7 +3081,16 @@
 
         function closeInfoFullscreenDrawer() {
             document.getElementById('infoFullscreenDrawer').classList.remove('open');
-            document.getElementById('drawerOverlay').classList.remove('open');
+
+            // Verifica se não há outro drawer aberto antes de remover o overlay
+            const isFormOpen = document.getElementById('fullscreenDrawer').classList.contains('open');
+            if (!isFormOpen) {
+                document.getElementById('drawerOverlay').classList.remove('open');
+            }
+
+            // --- A CORREÇÃO ESTÁ AQUI: ---
+            // Limpa o ID ativo para que o sistema pare de monitorar esse item
+            App.activeInfoId = null;
         }
 
         // Função auxiliar para normalizar endereços (expande abreviações e remove acentos)
@@ -3838,7 +3852,7 @@
 
                 el.innerHTML = `${icon} <span style="font-weight:500">${msg}</span>`;
 
-                area.appendChild(el);
+                area.prepend(el);
                 setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
             },
 
@@ -3929,11 +3943,16 @@
             openEditFullscreen(id);
         }
 
+        // Substitua a função antiga por esta:
         function closeAllDrawers() {
             document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
             document.getElementById('drawerOverlay').classList.remove('super-overlay');
             document.getElementById('drawerOverlay').classList.remove('open');
             App.closeModal();
+
+            // --- ADICIONE ESTAS LINHAS: ---
+            App.editingId = null;     // Garante que não fique preso em modo de edição
+            App.activeInfoId = null;  // Garante que não reabra a janela de info
         }
 
         // Nova função específica para fechar Configurações sem matar a tela de trás
