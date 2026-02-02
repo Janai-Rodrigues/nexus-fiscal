@@ -774,6 +774,20 @@
             font-weight: 700;
         }
 
+        .text-yellow {
+            color: #f8aa00;
+            /* Amarelo escuro para boa legibilidade */
+            font-weight: 700;
+            /* Amarelo claro de fundo */
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .divergence-red {
+            color: var(--st-pending-txt);
+            font-weight: 700;
+        }
+
         .drawer-footer-pagination {
             padding: 8px 24px;
             border-top: 1px solid var(--border);
@@ -2230,6 +2244,11 @@
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label>Vendedor</label>
+                        <input type="text" id="fs_vendedor" class="inp" name="vendedor" placeholder="Nome do vendedor">
+                    </div>
+
                     <!-- Campo de Divergências (apenas quando selecionado "Divergente") -->
                     <div id="divergenceFields" class="hidden"
                         style="margin-top:20px; padding:16px; background:var(--bg-subtle); border-radius:8px; border:1px solid var(--border);">
@@ -2725,6 +2744,7 @@
                 document.getElementById('fs_status_dev').value = item.status || 'Pendente';
                 document.getElementById('fs_action_dev').value = item.action || 'Emissão';
                 document.getElementById('fs_divergence').value = item.divergence || 'Sem divergência';
+                document.getElementById('fs_vendedor').value = item.vendedor || '';
                 document.getElementById('fs_obs').value = item.obs || '';
 
                 toggleDivergenceFields();
@@ -2829,6 +2849,7 @@
                     returnNote: document.getElementById('fs_returnNote').value,
                     action: document.getElementById('fs_action_dev').value,
                     divergence: document.getElementById('fs_divergence').value,
+                    vendedor: document.getElementById('fs_vendedor').value,
                     divergenceDetails: JSON.stringify(divergenceDetails),
                     divergenceObs: divergenceObs
                 });
@@ -2942,6 +2963,15 @@
                             <span class="info-label">Nota de Devolução</span>
                             <span class="info-value">${item.returnNote || '-'}</span>
                         </div>`;
+                
+                // Adiciona vendedor se existir
+                if (item.vendedor) {
+                    html += `
+                        <div class="info-item">
+                            <span class="info-label">Vendedor</span>
+                            <span class="info-value">${item.vendedor}</span>
+                        </div>`;
+                }
             }
 
             html += `</div></div>`;
@@ -3625,8 +3655,9 @@
                             const matchClient = item.client?.toLowerCase().includes(sSimple);
                             const matchSale = item.saleNote?.toLowerCase().includes(sSimple);
                             const matchReturn = item.returnNote?.toLowerCase().includes(sSimple);
+                            const matchVendedor = item.vendedor?.toLowerCase().includes(sSimple);
 
-                            if (!matchClient && !matchSale && !matchReturn) return false;
+                            if (!matchClient && !matchSale && !matchReturn && !matchVendedor) return false;
                         }
                     }
 
@@ -3669,7 +3700,8 @@
             <th style="width: 150px">Série</th>
             <th style="width: 130px">Status</th>
             <th style="width: 90px">Dias</th>
-            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 120px; text-align: right;"></th>
+            <th style="width: 100px">Local</th>
+            <th style="width: 120px; text-align: right;"></th>
         </tr>`;
                 } else {
                     thead.innerHTML = `
@@ -3683,7 +3715,8 @@
             <th style="width: 140px">Divergência</th>
             <th style="width: 130px">Status</th>
             <th style="width: 90px">Dias</th>
-            <th style="width: 60px; text-align: center;">INFO</th> <th style="width: 120px; text-align: right;"></th>
+            <th style="width: 100px">Vendedor</th>
+            <th style="width: 120px; text-align: right;"></th>
         </tr>`;
                 }
 
@@ -3768,7 +3801,6 @@
 
                     // (O restante da montagem do HTML continua igual, apenas verifique se não apagou nada acidentalmente)
                     if (this.module === 'retornos') {
-                        // ... (Seu código HTML do innerHTML) ...
                         const isDup = seriesCounts[(item.series || '').trim().toLowerCase()] > 1;
                         tr.innerHTML = `
                             <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
@@ -3777,20 +3809,16 @@
                             <td>${item.type || '-'}</td>
                             <td>${item.action || '-'}</td>
                             <td title="${item.address}">${item.address ? item.address.split(',')[0] + '...' : '-'}</td>
-                            <td class="${isDup ? 'text-red' : ''}">${item.series || '-'}</td>
+                            <td class="${isDup ? 'text-yellow' : ''}">${item.series || '-'}</td>
                             <td>${statusCell}</td>
                             <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
-                            <td style="text-align:center">
-                                <button class="btn-icon" style="margin:0 auto; color: var(--primary);" onclick="openInfoFullscreen('${item.id}')">
-                                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                                    </svg>
-                                </button>
-                            </td>
+                            <td>${item.withdrawal || '-'}</td>
                             <td class="action-cell"><div class="action-flex">${actions}</div></td>
                         `;
                     } else {
-                        // ... (Seu código HTML do innerHTML para Devoluções) ...
+                        // Destacar divergência em vermelho
+                        const divergenciaClass = item.divergence === 'Divergente' ? 'divergence-red' : '';
+                        
                         tr.innerHTML = `
                             <td><input type="checkbox" class="row-check" onchange="App.toggleSelect('${item.id}')" ${isSel ? 'checked' : ''}></td>
                             <td>${item.client || '-'}</td>
@@ -3798,16 +3826,10 @@
                             <td>${item.returnNote || '-'}</td>
                             <td>${item.date.split('-').reverse().join('/')}</td>
                             <td>${item.action || '-'}</td>
-                            <td>${item.divergence || '-'}</td>
+                            <td class="${divergenciaClass}">${item.divergence || '-'}</td>
                             <td>${statusCell}</td>
                             <td><span class="delay-tag ${isLate ? 'late' : ''}">${days}d</span></td>
-                            <td style="text-align:center">
-                                <button class="btn-icon" style="margin:0 auto; color: var(--primary);" onclick="openInfoFullscreen('${item.id}')">
-                                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                                    </svg>
-                                </button>
-                            </td>
+                            <td>${item.vendedor || '-'}</td>
                             <td class="action-cell"><div class="action-flex">${actions}</div></td>
                         `;
                     }
@@ -3914,6 +3936,7 @@
                         "Divergência": item.divergence,
                         "Divergências Detalhadas": item.divergenceDetails ? JSON.parse(item.divergenceDetails).join(', ') : "",
                         "Observações Divergências": item.divergenceObs || "",
+                        "Vendedor": item.vendedor || "",
                         "Status": item.status,
                         "Observações": item.obs || ""
                     }));
